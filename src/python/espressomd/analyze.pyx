@@ -66,6 +66,36 @@ def mindist(system, p1 = 'default', p2 = 'default'):
 
   return result
 
+# get all particles in neighborhood r_catch of pos and return their ids
+# in il. plane can be used to specify the distance in the xy, xz or yz
+# plane
+def nbhood(system, pos, r_catch, plane = '3d'):
+  cdef int planedims[3]
+  cdef IntList* il = NULL
+  cdef double c_pos[3]
+
+  if system.n_part == 0:
+    print  'no particles'
+    return 'no particles'
+
+  #default 3d takes into account dist in x, y and z
+  planedims[0] = 1
+  planedims[1] = 1
+  planedims[2] = 1
+  if plane == 'xy':
+    planedims[2] = 0
+  elif plane == 'xz':
+    planedims[1] = 0
+  elif plane == 'yz':
+    planedims[0] = 0
+  else:
+    raise Exception("Invalid argument for specifying plane, must be xy, xz, or yz plane")
+  
+  for i in range(3):
+    c_pos[i] = pos[i]
+
+  c_analyze.nbhood(c_pos, r_catch, il, planedims);
+  return create_nparray_from_IntList(il)
 #
 # Distance to particle or point
 #
@@ -86,6 +116,20 @@ def distto(system, id_or_pos):
       cpos[i] = id_or_pos[i]
       _id = -1
   return c_analyze.distto(cpos,_id)
+
+#
+# Pressure analysis
+#
+def pressure(system, etype = 'all', id1 = 'default', id2 = 'default'):
+  if system.n_part == 0:
+    print  'no particles'
+    return 'no particles'
+  
+  v_comp = 0 # TODO OWEN PUT IN A REASONABLE VALUE
+  pressure_labels = None
+  pressures = None
+  if etype=='total':
+    c_analyze.analyze_pressure(v_comp, pressure_labels, pressures)
 
 #
 # Energy analysis

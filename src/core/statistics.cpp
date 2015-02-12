@@ -24,6 +24,9 @@
 */
 #include <cstdlib>
 #include <cstring>
+#include <string>
+#include <sstream>
+
 #include "utils.hpp"
 #include "statistics.hpp"
 #include "statistics_chain.hpp"
@@ -1342,4 +1345,273 @@ void centermass_conf(int k, int type_1, double *com)
     com[i] /= M;
   }
   return;
+}
+
+void update_pressure(int v_comp) {
+	int i;
+	double p_vel[3];
+	/* if desired (v_comp==1) replace ideal component with instantaneous one */
+	if (total_pressure.init_status != 1+v_comp ) {
+		init_virials(&total_pressure);
+		init_p_tensor(&total_p_tensor);
+
+		init_virials_non_bonded(&total_pressure_non_bonded);
+		init_p_tensor_non_bonded(&total_p_tensor_non_bonded);
+
+		if(v_comp && (integ_switch == INTEG_METHOD_NPT_ISO) && !(nptiso.invalidate_p_vel)) {
+			if (total_pressure.init_status == 0)
+				master_pressure_calc(0);
+			total_pressure.data.e[0] = 0.0;
+			MPI_Reduce(nptiso.p_vel, p_vel, 3, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+			for(i=0; i<3; i++)
+				if(nptiso.geometry & nptiso.nptgeom_dir[i])
+					total_pressure.data.e[0] += p_vel[i];
+			total_pressure.data.e[0] /= (nptiso.dimension*nptiso.volume);
+			total_pressure.init_status = 1+v_comp;   }
+		else
+			master_pressure_calc(v_comp);
+	}
+}
+
+//return two vectors with the various pressure in the system and an appropriate label for each
+void analyze_pressure_pair(int v_comp, std::vector<std::string> *pressure_labels, std::vector<double> *pressures)
+{
+	int i, j;
+	double current_pressure_term;
+	std::ostringstream cur_label;
+
+	if (total_pressure.init_status != 1+v_comp )
+		update_pressure(v_comp);
+
+	current_pressure_term = total_pressure.data.e[0];
+	for (i = 1; i < total_pressure.data.n; i++) {
+		current_pressure_term += total_pressure.data.e[i];
+	}
+	pressures->push_back(current_pressure_term);
+	pressure_labels->push_back("pressure");
+
+	pressures->push_back(total_pressure.data.e[0]);
+	pressure_labels->push_back("ideal");
+	for(i=0;i<n_bonded_ia;i++) {
+		if (bonded_ia_params[i].type != BONDED_IA_NONE) {
+			pressures->push_back( *obsstat_bonded(&total_pressure, i));
+			pressure_labels->push_back( get_name_of_bonded_ia(bonded_ia_params[i].type));
+		}
+	}
+
+	for (i = 0; i < n_particle_types; i++) {
+		for (j = i; j < n_particle_types; j++) {
+			if (checkIfParticlesInteract(i, j)) {
+				pressures->push_back(*obsstat_nonbonded(&total_pressure, i, j));
+				cur_label << "nonbonded" << i << j;
+				pressure_labels->push_back( cur_label.str() );
+			}
+		}
+	}
+
+	/* In case we need intra- and inter- nonbonded (nb) contribution of total pressure  */
+	current_pressure_term = 0;
+	for (i = 0; i < n_particle_types; i++) {
+		for (j = i; j < n_particle_types; j++) {
+				current_pressure_term += *obsstat_nonbonded_intra(&total_pressure_non_bonded, i, j);
+		}
+	}
+	pressures->push_back(current_pressure_term);
+	pressure_labels->push_back("total_nb_intra");
+
+	current_pressure_term = 0;
+	for (i = 0; i < n_particle_types; i++) {
+		for (j = i; j < n_particle_types; j++) {
+				current_pressure_term += *obsstat_nonbonded_inter(&total_pressure_non_bonded, i, j);
+		}
+	}
+	pressures->push_back(current_pressure_term);
+	pressure_labels->push_back("total_nb_inter");
+
+
+	for (i = 0; i < n_particle_types; i++) {
+		for (j = i; j < n_particle_types; j++) {
+			if (checkIfParticlesInteract(i, j)) {
+				pressures->push_back(*obsstat_nonbonded_intra(&total_pressure_non_bonded, i, j));
+				cur_label << "nb_intra" << i << j;
+				pressure_labels->push_back( cur_label.str() );
+			}
+		}
+	}
+
+	for (i = 0; i < n_particle_types; i++) {
+		for (j = i; j < n_particle_types; j++) {
+			if (checkIfParticlesInteract(i, j)) {
+				pressures->push_back(*obsstat_nonbonded_inter(&total_pressure_non_bonded, i, j));
+				cur_label << "nb_inter" << i << j;
+				pressure_labels->push_back( cur_label.str() );
+			}
+		}
+	}
+
+#if  defined(ELECTROSTATICS) || defined (DIPOLES)
+	if(
+#ifdef ELECTROSTATICS
+			coulomb.method != COULOMB_NONE
+#else
+			0
+#endif
+			||
+#ifdef DIPOLES
+			coulomb.Dmethod != DIPOLAR_NONE
+#else
+			0
+#endif
+	) {
+		/* total Coulomb pressure */
+		current_pressure_term = total_pressure.coulomb[0];
+		for (i = 1; i < total_pressure.n_coulomb; i++)
+			current_pressure_term += total_pressure.coulomb[i];
+		for (i = 0; i < total_pressure.n_dipolar; i++)
+			current_pressure_term += total_pressure.dipolar[i];
+		pressures->push_back(current_pressure_term);
+		pressure_labels->push_back("coulomb-total");
+#if  defined(ELECTROSTATICS) && defined (DIPOLES)
+		pressure_labels->push_back("coulomb");
+		pressure_labels->push_back("magdipoles");
+#else
+#if defined(ELECTROSTATICS)
+		pressure_labels->push_back("coulomb");
+#endif
+#if defined(DIPOLES)
+		pressure_labels->push_back("magdipoles");
+#endif
+#endif
+
+		/* if it is split up, then print the split up parts */
+		if (total_pressure.n_coulomb > 1) {
+			for (i = 0; i < total_pressure.n_coulomb; i++) {
+				pressures->push_back(total_pressure.coulomb[i]);
+			}
+		}
+	}
+#endif
+#ifdef VIRTUAL_SITES_RELATIVE
+	pressures->push_back(total_pressure.vs_relative[0]);
+	pressure_labels->push_back("va_relative");
+#endif
+}
+
+//analyse pressure for the python interface
+double analyse_pressure(std::string pressure_to_calc, int v_comp)
+{
+	/* 'analyze pressure [{ bond <type_num> | nonbonded <type1> <type2> | coulomb | ideal | total }]' */
+	int i, j;
+	double current_pressure_term;
+
+	if (total_pressure.init_status != 1+v_comp )
+		update_pressure(v_comp);
+
+	if (pressure_to_calc== "total") {
+		current_pressure_term = total_pressure.data.e[0];
+		for (i = 1; i < total_pressure.data.n; i++)
+			current_pressure_term += total_pressure.data.e[i];
+		return current_pressure_term;
+	}
+	else if (pressure_to_calc== "ideal") {
+		return total_pressure.data.e[0];
+	}
+	else if (pressure_to_calc=="coulomb") {
+#ifdef ELECTROSTATICS
+		double coulomb_pressure = 0;
+		for (i = 0; i < total_pressure.n_coulomb; i++)
+			coulomb_pressure += total_pressure.coulomb[i];
+		return coulomb_pressure;
+#else
+		if (warnings) fprintf(stderr,"Warning, trying to measure Coulombic pressure but electrostatics not compiled into ESPResSo, check the myconfig.hpp\n");
+#endif
+	}
+	else if (pressure_to_calc=="tot_nonbonded_intra") {
+		current_pressure_term = 0;
+		for (i = 0; i < n_particle_types; i++)
+			for (j = i; j < n_particle_types; j++)
+				current_pressure_term += *obsstat_nonbonded_intra(&total_pressure_non_bonded, i, j);
+		return current_pressure_term;
+	}
+	else if  (pressure_to_calc=="tot_nonbonded_inter") {
+		current_pressure_term = 0;
+		for (i = 0; i < n_particle_types; i++)
+			for (j = i; j < n_particle_types; j++)
+				current_pressure_term += *obsstat_nonbonded_inter(&total_pressure_non_bonded, i, j);
+		return current_pressure_term;
+	}
+	else if (pressure_to_calc=="tot_bonded") {
+		current_pressure_term = 0;
+		for(i=0;i<n_bonded_ia;i++) {
+			if (bonded_ia_params[i].type != BONDED_IA_NONE) {
+				current_pressure_term += *obsstat_bonded(&total_pressure, i);
+			}
+		}
+		return current_pressure_term;
+	}
+	else {
+		if (warnings) fprintf(stderr,"Warning, pressure calculation function called does not exist\n");
+		return 0;
+	}
+}
+
+double analyse_pressure(std::string pressure_to_calc, int bond_or_type, int v_comp)
+{
+	if (total_pressure.init_status != 1+v_comp )
+		update_pressure(v_comp);
+
+	if (pressure_to_calc=="bonded") {
+		if(bond_or_type < 0 || bond_or_type >= n_bonded_ia){
+			fprintf(stderr, "Warning: bond type does not exist\n");
+			return 0;
+		}
+		return *obsstat_bonded(&total_pressure, bond_or_type);
+	}
+	else if (pressure_to_calc=="nonbonded_intra") {
+		if(bond_or_type < 0 || bond_or_type >= n_particle_types){
+			fprintf(stderr, "Warning: particle type does not exist\n");
+			return 0;
+		}
+		double current_pressure_term = 0;
+		for (int i = 0; i<n_particle_types; i++)
+			current_pressure_term += *obsstat_nonbonded_intra(&total_pressure_non_bonded, bond_or_type, i);
+		return current_pressure_term;
+	}
+	else if (pressure_to_calc=="nonbonded_inter") {
+		if(bond_or_type < 0 || bond_or_type >= n_particle_types){
+			fprintf(stderr, "Warning: particle type does not exist\n");
+			return 0;
+		}
+		double current_pressure_term = 0;
+		for (int i = 0; i<n_particle_types; i++)
+			current_pressure_term += *obsstat_nonbonded_inter(&total_pressure_non_bonded, bond_or_type, i);
+		return current_pressure_term;
+	}
+	else {
+		if (warnings) fprintf(stderr,"Warning: pressure calculation called does not exist\n");
+		return 0;
+	}
+}
+
+double analyse_pressure(std::string pressure_to_calc, int type1, int type2, int v_comp)
+{
+	if (total_pressure.init_status != 1+v_comp )
+		update_pressure(v_comp);
+
+	if(type1 < 0 || type1 >= n_particle_types || type2 < 0 || type2 >= n_particle_types) {
+		if (warnings) fprintf(stderr,"Warning: tried to calculate pressure between a type which does not exist\n");
+		return 0;
+	}
+	if ( pressure_to_calc=="nonbonded") {
+		double current_pressure_term = 0;
+		for (int i = 0; i<n_particle_types; i++){
+			current_pressure_term += *obsstat_nonbonded_inter(&total_pressure_non_bonded, type1, type2);
+			current_pressure_term += *obsstat_nonbonded_intra(&total_pressure_non_bonded, type1, type2);
+		}
+		return current_pressure_term;
+	}
+	else {
+		if (warnings) fprintf(stderr,"Warning, pressure calculation called does not exist\n");
+		return 0;
+	}
 }

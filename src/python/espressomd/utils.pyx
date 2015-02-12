@@ -34,6 +34,13 @@ cdef IntList* create_IntList_from_python_object(obj):
 
   return il
 
+cdef np.ndarray create_nparray_from_IntList(IntList* il):
+  numpyArray = np.zeros(il.n)
+  for i in range(il.n):
+    numpyArray[i] = il.e[i]
+
+  return numpyArray
+
 cdef checkTypeOrExcept(x,n,t,msg):
   """Checks that x is of type t and that n values are given, otherwise throws ValueError with the message msg.
      If x is an array/list/tuple, the type checking is done on the elements, and

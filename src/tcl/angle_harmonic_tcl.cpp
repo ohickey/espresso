@@ -58,6 +58,8 @@ int tclcommand_inter_parse_angle_harmonic(Tcl_Interp *interp, int bond_type, int
     phi0 = PI;
   }
   CHECK_VALUE(angle_harmonic_set_params(bond_type, bend, phi0), "bond type must be nonnegative");
+
+  return TCL_OK;
 }
 
 int tclprint_to_result_angle_harmonicIA(Tcl_Interp *interp, Bonded_ia_parameters *params)

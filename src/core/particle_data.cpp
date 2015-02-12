@@ -696,10 +696,8 @@ int set_particle_rotational_inertia(int part, double rinertia[3])
   return ES_OK;
 }
 
-double* pointer_to_rotational_inertia(Particle* p, double rinertia[3]) {
-	double* justTryingToFixBuild;
-	return justTryingToFixBuild;
-	//TODO WRITE A FUNCTION THAT ACTUALLY RETURNS SOMETHING!!!
+void pointer_to_rotational_inertia(Particle* p, double*& rinertia) {
+	rinertia = p->p.rinertia;
 }
 #endif
 
@@ -2021,7 +2019,7 @@ int number_of_particles_with_type(int type, int *number){
 
 
 #ifdef ROTATION
-void pointer_to_omega_body(Particle* p, double*&  res)
+void pointer_to_omega_body(Particle* p, double*& res)
 {
   res=p->m.omega;
 }

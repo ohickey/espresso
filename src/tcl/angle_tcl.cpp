@@ -57,6 +57,8 @@ int tclcommand_inter_parse_angle(Tcl_Interp *interp, int bond_type, int argc, ch
     phi0 = PI;
   }
   CHECK_VALUE(angle_set_params(bond_type, bend, phi0), "bond type must be nonnegative");
+
+  return TCL_OK;
 }
 
 int tclprint_to_result_angleIA(Tcl_Interp *interp, Bonded_ia_parameters *params)

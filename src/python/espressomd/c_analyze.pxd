@@ -35,9 +35,13 @@ cdef extern from "statistics.hpp":
 
 cdef extern from "statistics.hpp":
   cdef double mindist(IntList *set1, IntList *set2)
+  cdef void nbhood(double pos[3], double r_catch, IntList *il, int planedims[3])
   cdef double distto(double pos[3], int pid)
   cdef double *obsstat_bonded(Observable_stat *stat, int j)
   cdef double *obsstat_nonbonded(Observable_stat *stat, int i, int j)
+  cdef void analyze_pressure(int v_comp, void *pressure_labels, void *pressures)
+  cdef double analyse_pressure(char *pressure_to_calc, int v_comp)
+  cdef double analyse_pressure_pair(char *pressure_to_calc, int bond_or_type, int v_comp)
 
 cdef extern from "energy.hpp":
   cdef Observable_stat total_energy

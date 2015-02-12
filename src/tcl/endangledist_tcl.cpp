@@ -45,6 +45,8 @@ int tclcommand_inter_parse_endangledist(Tcl_Interp *interp, int bond_type, int a
   }
 
   CHECK_VALUE(endangledist_set_params(bond_type, bend, phi0, distmin, distmax), "bond type must be nonnegative");
+
+  return TCL_OK;
 }
 
 int tclprint_to_result_endangledistIA(Tcl_Interp *interp,

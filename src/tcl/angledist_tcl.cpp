@@ -70,6 +70,8 @@ int tclcommand_inter_parse_angledist(Tcl_Interp *interp, int bond_type, int argc
 
 
   CHECK_VALUE(angledist_set_params(bond_type, bend, phimin, distmin, phimax, distmax), "bond type must be nonnegative");
+
+  return TCL_OK;
 }
 
 int tclprint_to_result_angledistIA(Tcl_Interp *interp,
