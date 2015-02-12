@@ -377,9 +377,10 @@ void predict_momentum_particles(double *result);
 void momentum_calc(double *momentum);
 
 void update_pressure(int v_comp);
-void analyze_pressure(int v_comp, std::vector<std::string> *pressure_labels, std::vector<double> *pressures);
+void analyze_pressure_all(int v_comp, std::vector<std::string> *pressure_labels, std::vector<double> *pressures);
 double analyse_pressure(std::string pressure_to_calc, int v_comp);
 double analyse_pressure_pair(std::string pressure_to_calc, int bond_or_type, int v_comp);
+double analyse_pressure_single(std::string pressure_to_calc, int bond_or_type, int v_comp);
 
 inline double *obsstat_bonded(Observable_stat *stat, int j)
 {

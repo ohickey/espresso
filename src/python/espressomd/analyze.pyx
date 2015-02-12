@@ -24,6 +24,8 @@ cimport particle_data
 import utils
 import code_info
 import particle_data
+from libcpp.string cimport string #import std::string as string
+from libcpp.vector cimport vector #import std::vector as vector
 
 #
 # Minimal distance between particles
@@ -121,15 +123,23 @@ def distto(system, id_or_pos):
 # Pressure analysis
 #
 def pressure(system, etype = 'all', id1 = 'default', id2 = 'default'):
+  cdef vector[string] pressure_labels
+  cdef vector[double] pressures
+
   if system.n_part == 0:
     print  'no particles'
     return 'no particles'
   
   v_comp = 0 # TODO OWEN PUT IN A REASONABLE VALUE
-  pressure_labels = None
-  pressures = None
-  if etype=='total':
-    c_analyze.analyze_pressure(v_comp, pressure_labels, pressures)
+  if etype=='all':
+    c_analyze.analyze_pressure_all(v_comp, &pressure_labels, &pressures)
+    return pressure_labels, pressures
+  elif id2 == 'default' and id1 != 'default':
+    pressure = c_analyze.analyze_pressure.analyze_pressure_single(etype,id1)
+    return pressure
+  else:
+    pressure = c_analyze.analyze_pressure.analyze_pressure_single(etype,id1,id2)
+    return pressure
 
 #
 # Energy analysis

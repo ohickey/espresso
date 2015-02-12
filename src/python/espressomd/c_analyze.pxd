@@ -20,6 +20,8 @@
 
 cimport numpy as np
 from utils cimport *
+from libcpp.string cimport string #import std::string as string
+from libcpp.vector cimport vector #import std::vector as vector
 
 cdef extern from "statistics.hpp":
   ctypedef struct Observable_stat:
@@ -39,9 +41,10 @@ cdef extern from "statistics.hpp":
   cdef double distto(double pos[3], int pid)
   cdef double *obsstat_bonded(Observable_stat *stat, int j)
   cdef double *obsstat_nonbonded(Observable_stat *stat, int i, int j)
-  cdef void analyze_pressure(int v_comp, void *pressure_labels, void *pressures)
-  cdef double analyse_pressure(char *pressure_to_calc, int v_comp)
-  cdef double analyse_pressure_pair(char *pressure_to_calc, int bond_or_type, int v_comp)
+  cdef void analyze_pressure_all(int v_comp, vector[string] *pressure_labels, vector[double] *pressures)
+  cdef double analyse_pressure(string pressure_to_calc, int v_comp)
+  cdef double analyse_pressure_pair(string pressure_to_calc, int bond_or_type, int v_comp)
+  cdef double analyse_pressure_single(string pressure_to_calc, int bond_or_type, int v_comp)
 
 cdef extern from "energy.hpp":
   cdef Observable_stat total_energy

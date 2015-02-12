@@ -1374,7 +1374,7 @@ void update_pressure(int v_comp) {
 }
 
 //return two vectors with the various pressure in the system and an appropriate label for each
-void analyze_pressure_pair(int v_comp, std::vector<std::string> *pressure_labels, std::vector<double> *pressures)
+void analyze_pressure_all(int v_comp, std::vector<std::string> *pressure_labels, std::vector<double> *pressures)
 {
 	int i, j;
 	double current_pressure_term;
@@ -1555,7 +1555,7 @@ double analyse_pressure(std::string pressure_to_calc, int v_comp)
 	}
 }
 
-double analyse_pressure(std::string pressure_to_calc, int bond_or_type, int v_comp)
+double analyse_pressure_single(std::string pressure_to_calc, int bond_or_type, int v_comp)
 {
 	if (total_pressure.init_status != 1+v_comp )
 		update_pressure(v_comp);
@@ -1593,7 +1593,7 @@ double analyse_pressure(std::string pressure_to_calc, int bond_or_type, int v_co
 	}
 }
 
-double analyse_pressure(std::string pressure_to_calc, int type1, int type2, int v_comp)
+double analyse_pressure_pair(std::string pressure_to_calc, int type1, int type2, int v_comp)
 {
 	if (total_pressure.init_status != 1+v_comp )
 		update_pressure(v_comp);
