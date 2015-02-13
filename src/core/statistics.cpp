@@ -1497,10 +1497,8 @@ void analyze_pressure_all(int v_comp, std::vector<std::string> *pressure_labels,
 #endif
 }
 
-//analyse pressure for the python interface
 double analyse_pressure(std::string pressure_to_calc, int v_comp)
 {
-	/* 'analyze pressure [{ bond <type_num> | nonbonded <type1> <type2> | coulomb | ideal | total }]' */
 	int i, j;
 	double current_pressure_term;
 
@@ -1549,10 +1547,10 @@ double analyse_pressure(std::string pressure_to_calc, int v_comp)
 		}
 		return current_pressure_term;
 	}
-	else {
-		if (warnings) fprintf(stderr,"Warning, pressure calculation function called does not exist\n");
-		return 0;
-	}
+
+	if (warnings) fprintf(stderr,"Warning, pressure calculation function called does not exist\n");
+	return 0;
+
 }
 
 double analyse_pressure_single(std::string pressure_to_calc, int bond_or_type, int v_comp)
@@ -1610,8 +1608,379 @@ double analyse_pressure_pair(std::string pressure_to_calc, int type1, int type2,
 		}
 		return current_pressure_term;
 	}
+	else if ( pressure_to_calc=="nb_intra") {
+		double current_pressure_term = 0;
+		for (int i = 0; i<n_particle_types; i++){
+			current_pressure_term += *obsstat_nonbonded_intra(&total_pressure_non_bonded, type1, type2);
+		}
+		return current_pressure_term;
+	}
+	else if ( pressure_to_calc=="nb_inter") {
+		double current_pressure_term = 0;
+		for (int i = 0; i<n_particle_types; i++){
+			current_pressure_term += *obsstat_nonbonded_inter(&total_pressure_non_bonded, type1, type2);
+		}
+		return current_pressure_term;
+	}
 	else {
 		if (warnings) fprintf(stderr,"Warning, pressure calculation called does not exist\n");
 		return 0;
 	}
+}
+
+void update_stress_tensor (int v_comp) {
+	int i;
+	double p_vel[3];
+	/* if desired (v_comp==1) replace ideal component with instantaneous one */
+	if (total_pressure.init_status != 1+v_comp ) {
+		init_virials(&total_pressure);
+		init_p_tensor(&total_p_tensor);
+
+		init_virials_non_bonded(&total_pressure_non_bonded);
+		init_p_tensor_non_bonded(&total_p_tensor_non_bonded);
+
+		if(v_comp && (integ_switch == INTEG_METHOD_NPT_ISO) && !(nptiso.invalidate_p_vel)) {
+			if (total_pressure.init_status == 0)
+				master_pressure_calc(0);
+			p_tensor.data.e[0] = 0.0;
+			MPI_Reduce(nptiso.p_vel, p_vel, 3, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+			for(i=0; i<3; i++)
+				if(nptiso.geometry & nptiso.nptgeom_dir[i])
+					p_tensor.data.e[0] += p_vel[i];
+			p_tensor.data.e[0] /= (nptiso.dimension*nptiso.volume);
+			total_pressure.init_status = 1+v_comp;   }   //TODO OWEN COULD THIS NOT LEAD TO TROUBLE IF ONE IS USING BOTH PRESSURE AND STRESS??
+		else
+			master_pressure_calc(v_comp);
+	}
+}
+
+void analyze_stress_tensor_all(int v_comp, std::vector<std::string> *stressTensorLabel, std::vector<double> *stressTensorValues)
+{
+	double value;
+	int i, j, k;
+	value = 0.0;
+	std::ostringstream cur_label;
+
+	if (total_pressure.init_status != 1+v_comp )
+		update_pressure(v_comp);
+
+	for(j=0; j<9; j++) {
+		value = total_p_tensor.data.e[j];
+		for (i = 1; i < total_p_tensor.data.n/9; i++) value += total_p_tensor.data.e[9*i + j];
+		cur_label << "stress_tensor_total" << i;
+		stressTensorLabel->push_back(cur_label.str());
+		stressTensorValues->push_back(value);
+	}
+
+	for(j=0; j<9; j++) {
+		stressTensorLabel->push_back("ideal_stress_tensor");
+		cur_label << "ideal_stress_tensor" << i;
+		stressTensorLabel->push_back(cur_label.str());
+		stressTensorValues->push_back(total_p_tensor.data.e[j]);
+	}
+
+	for(i=0;i<n_bonded_ia;i++) {
+		if (bonded_ia_params[i].type != BONDED_IA_NONE) {
+			for(j=0; j<9; j++) {
+				cur_label << get_name_of_bonded_ia(bonded_ia_params[i].type) << i << j;
+				stressTensorLabel->push_back(cur_label.str());
+				stressTensorValues->push_back(obsstat_bonded(&total_p_tensor, i)[j]);
+			}
+		}
+	}
+
+	for (i = 0; i < n_particle_types; i++) {
+		for (j = i; j < n_particle_types; j++) {
+			if (checkIfParticlesInteract(i, j)) {
+				for(k=0; k<9; k++) {
+					stressTensorValues->push_back(obsstat_nonbonded(&total_p_tensor, i, j)[k]);
+					cur_label << "nonbonded" << i << j << k;
+					stressTensorLabel->push_back( cur_label.str() );
+				}
+			}
+		}
+	}
+
+
+	for(k=0; k<9; k++) {
+		value = 0.0;
+		for (i = 0; i < n_particle_types; i++)
+			for (j = i; j < n_particle_types; j++) {
+				value += obsstat_nonbonded_intra(&total_p_tensor_non_bonded, i, j)[k];
+			}
+		cur_label << "total_nb_intra" << i << j;
+		stressTensorLabel->push_back( cur_label.str() );
+		stressTensorValues->push_back(value);
+	}
+
+	for(k=0; k<9; k++) {
+		value = 0.0;
+		for (i = 0; i < n_particle_types; i++)
+			for (j = i; j < n_particle_types; j++) {
+				value += obsstat_nonbonded_inter(&total_p_tensor_non_bonded, i, j)[k];
+			}
+		cur_label << "total_nb_inter" << i << j;
+		stressTensorLabel->push_back( cur_label.str() );
+		stressTensorValues->push_back(value);
+	}
+
+	for (i = 0; i < n_particle_types; i++)
+		for (j = i; j < n_particle_types; j++) {
+			if (checkIfParticlesInteract(i, j)) {
+				for(k=0; k<9; k++) {
+					cur_label << "nb_intra_tensor" << i << j << k;
+					stressTensorLabel->push_back( cur_label.str() );
+					stressTensorValues->push_back(obsstat_nonbonded_intra(&total_p_tensor_non_bonded, i, j)[k]);
+				}
+			}
+		}
+
+	for (i = 0; i < n_particle_types; i++)
+		for (j = i; j < n_particle_types; j++) {
+			if (checkIfParticlesInteract(i, j)) {
+				for(k=0; k<9; k++) {
+					cur_label << "nb_inter_tensor" << i << j << k;
+					stressTensorLabel->push_back( cur_label.str() );
+					stressTensorValues->push_back(obsstat_nonbonded_inter(&total_p_tensor_non_bonded, i, j)[k]);
+				}
+			}
+		}
+
+#ifdef ELECTROSTATICS
+	if(coulomb.method != COULOMB_NONE) {
+		for(j=0; j<9; j++) {
+			cur_label << "coulomb" << j;
+			stressTensorLabel->push_back( cur_label.str() );
+			stressTensorValues->push_back(total_p_tensor.coulomb[j]);
+		}
+	}
+#endif
+
+#ifdef DIPOLES
+	if(coulomb.Dmethod != DIPOLAR_NONE) {
+		fprintf(stderr,"tensor magnetostatics, something should go here, file pressure.cpp ... \n");
+	}
+#endif
+
+#ifdef VIRTUAL_SITES_RELATIVE
+	for (j=0;j<9;j++) {
+		cur_label << "vs_relative" << j;
+		stressTensorLabel->push_back( cur_label.str() );
+		stressTensorValues->push_back(total_p_tensor.vs_relative[j]);
+	}
+#endif
+
+
+}
+
+/************************************************************/
+double* analyze_stress_tensor(std::string pressure_to_calc, int v_comp)
+{
+  /* 'analyze stress_tensor [{ bond <type_num> | nonbonded <type1> <type2> | coulomb | ideal | total }]' */
+  int i, j, k;
+  double* tvalue = (double*)calloc(9, sizeof(double));
+
+
+	if (total_pressure.init_status != 1+v_comp )
+		update_stress_tensor(v_comp);
+
+	if (pressure_to_calc=="total") {
+		for(j=0; j<9; j++) {
+			tvalue[j] = total_p_tensor.data.e[j];
+			for (i = 1; i < total_p_tensor.data.n/9; i++) tvalue[j] += total_p_tensor.data.e[9*i + j];
+		}
+		return tvalue;
+	}
+	else if (pressure_to_calc=="ideal") {
+		for(j=0; j<9; j++)  tvalue[j] = total_p_tensor.data.e[j];
+	}
+	else if(pressure_to_calc=="tot_nb_intra") {
+		for(k=0; k<9; k++) {
+			for (i = 0; i < n_particle_types; i++)
+				for (j = i; j < n_particle_types; j++) {
+					tvalue[k] += obsstat_nonbonded_intra(&total_p_tensor_non_bonded, i, j)[k];
+				}
+		}
+		return tvalue;
+	}
+	else if(pressure_to_calc=="tot_nb_inter") {
+		for(k=0; k<9; k++) {
+			for (i = 0; i < n_particle_types; i++)
+				for (j = i; j < n_particle_types; j++) {
+					tvalue[k] += obsstat_nonbonded_inter(&total_p_tensor_non_bonded, i, j)[k];
+				}
+		}
+		return tvalue;
+	}
+	else if(pressure_to_calc=="coulomb") {
+#ifdef ELECTROSTATICS
+		for(j=0; j<9; j++) tvalue[j] = total_p_tensor.coulomb[j];
+		return tvalue;
+#else
+		fprintf(stderr, "ELECTROSTATICS not compiled (see config.hpp)\n");
+#endif
+	}
+	else if(pressure_to_calc=="dipolar") {
+#ifdef DIPOLES
+		/* for(j=0; j<9; j++) tvalue[j] = total_p_tensor.coulomb[j];*/
+		fprintf(stderr," stress tensor, magnetostatics, something should go here, file statistics.cpp ");
+		return 0;
+#else
+		fprintf(stderr, "DIPOLES not compiled (see config.hpp), although Espresso doesn't calculate the stress tensor for dipoles\n");
+#endif
+	}
+#ifdef VIRTUAL_SITES_RELATIVE
+	else if (pressure_to_calc=="VS_RELATIVE") {
+		for(j=0; j<9; j++) tvalue[j] = total_p_tensor.vs_relative[j];
+		return tvalue;
+	}
+#endif
+
+	if (warnings) fprintf(stderr,"Warning, pressure calculation function called does not exist\n");
+	return 0;
+}
+
+double* analyse_stress_pair(std::string pressure_to_calc, int type1, int type2, int v_comp)
+{
+	double* tvalue = (double*)calloc(9, sizeof(double));
+
+	if (total_pressure.init_status != 1+v_comp )
+		update_pressure(v_comp);
+
+	if(type1 < 0 || type1 >= n_particle_types || type2 < 0 || type2 >= n_particle_types) {
+		if (warnings) fprintf(stderr,"Warning: tried to calculate pressure between a type which does not exist\n");
+		return 0;
+	}
+	if ( pressure_to_calc=="nonbonded") {
+		for (int i = 0; i<9; i++){
+			tvalue[i] = obsstat_nonbonded_inter(&total_pressure_non_bonded, type1, type2)[i];
+			tvalue[i] += obsstat_nonbonded_intra(&total_pressure_non_bonded, type1, type2)[i];
+		}
+		return tvalue;
+	}
+	else if ( pressure_to_calc=="nb_intra") {
+		for (int i = 0; i<9; i++){
+			tvalue[i] = obsstat_nonbonded_intra(&total_pressure_non_bonded, type1, type2)[i];
+		}
+		return tvalue;
+	}
+	if ( pressure_to_calc=="nb_inter") {
+		for (int i = 0; i<9; i++){
+			tvalue[i] = obsstat_nonbonded_inter(&total_pressure_non_bonded, type1, type2)[i];
+		}
+		return tvalue;
+	}
+	else {
+		if (warnings) fprintf(stderr,"Warning, pressure calculation called does not exist\n");
+		return 0;
+	}
+}
+
+double* analyse_stress_single(std::string pressure_to_calc, int bond_or_type, int v_comp)
+{
+	double* tvalue = (double*)calloc(9, sizeof(double));
+	int j, k;
+
+	for(j=0; j<9; j++) tvalue[j] = 0.0;
+
+	if (total_pressure.init_status != 1+v_comp )
+		update_pressure(v_comp);
+
+	if (pressure_to_calc=="bonded") {
+		if(bond_or_type < 0 || bond_or_type >= n_bonded_ia){
+			fprintf(stderr, "Warning: bond type does not exist\n");
+			return 0;
+		}
+		for(k=0; k<9; k++) tvalue[k] = obsstat_bonded(&total_p_tensor, bond_or_type)[k];
+		return tvalue;
+	}
+	else if (pressure_to_calc=="nonbonded_intra") {
+		if(bond_or_type < 0 || bond_or_type >= n_particle_types){
+			fprintf(stderr, "Warning: particle type does not exist\n");
+			return 0;
+		}
+		for (int i = 0; i<n_particle_types; i++)
+			for(k=0; k<9; k++)
+				tvalue[k] += obsstat_nonbonded_intra(&total_pressure_non_bonded, bond_or_type, i)[k];
+		return tvalue;
+	}
+	else if (pressure_to_calc=="nonbonded_inter") {
+		if(bond_or_type < 0 || bond_or_type >= n_particle_types){
+			fprintf(stderr, "Warning: particle type does not exist\n");
+			return 0;
+		}
+		for (int i = 0; i<n_particle_types; i++)
+			for(k=0; k<9; k++)
+				tvalue[k] += obsstat_nonbonded_inter(&total_pressure_non_bonded, bond_or_type, i)[k];
+		return tvalue;
+	}
+	else {
+		if (warnings) fprintf(stderr,"Warning: pressure calculation called does not exist\n");
+		return 0;
+	}
+}
+
+int analyze_local_stress_tensor(int* input_args, DoubleList* local_stress_tensor)
+{
+	int periodic[3];
+	double range_start[3];
+	double range[3];
+	int bins[3];
+	int i,j;
+	DoubleList *TensorInBin;
+	PTENSOR_TRACE(fprintf(stderr,"%d: Running tclcommand_analyze_parse_local_stress_tensor\n",this_node));
+
+
+	for (i=0;i<3;i++) {
+		periodic[i] = input_args[i];
+		range_start[i] = input_args[i+3];
+		range[i] = input_args[i+6];
+		bins[i] = input_args[i+9];
+	}
+
+	/* Allocate a doublelist of bins to keep track of stress profile */
+	TensorInBin = (DoubleList *)malloc(bins[0]*bins[1]*bins[2]*sizeof(DoubleList));
+	if ( TensorInBin ) {
+		/* Initialize the stress profile */
+		for ( i = 0 ; i < bins[0]*bins[1]*bins[2]; i++ ) {
+			init_doublelist(&TensorInBin[i]);
+			alloc_doublelist(&TensorInBin[i],9);
+			for ( j = 0 ; j < 9 ; j++ ) {
+				TensorInBin[i].e[j] = 0.0;
+			}
+		}
+	} else {
+		fprintf(stderr, "could not allocate memory for local_stress_tensor");
+		return (ES_ERROR);
+	}
+
+	mpi_local_stress_tensor(TensorInBin, bins, periodic,range_start, range);
+	PTENSOR_TRACE(fprintf(stderr,"%d: tclcommand_analyze_parse_local_stress_tensor: finished mpi_local_stress_tensor \n",this_node));
+
+//	/* Write stress profile to Tcl export */
+//	Tcl_AppendResult(interp, "{ LocalStressTensor } ", (char *)NULL);
+//	for ( i = 0 ; i < bins[0] ; i++) {
+//		for ( j = 0 ; j < bins[1] ; j++) {
+//			for ( k = 0 ; k < bins[2] ; k++) {
+//				Tcl_AppendResult(interp, " { ", (char *)NULL);
+//				sprintf(buffer," { %d %d %d } ",i,j,k);
+//				Tcl_AppendResult(interp,buffer, (char *)NULL);
+//				Tcl_AppendResult(interp, " { ", (char *)NULL);
+//				for ( l = 0 ; l < 9 ; l++) {
+//					Tcl_PrintDouble(interp,TensorInBin[i*bins[1]*bins[2]+j*bins[2]+k].e[l],buffer);
+//					Tcl_AppendResult(interp, buffer, (char *)NULL);
+//					Tcl_AppendResult(interp, " ", (char *)NULL);
+//				}
+//				Tcl_AppendResult(interp, " } ", (char *)NULL);
+//				Tcl_AppendResult(interp, " } ", (char *)NULL);
+//			}
+//		}
+//	}
+
+	/* Free memory */
+	for ( i = 0 ; i < bins[0]*bins[1]*bins[2] ; i++ ) {
+		realloc_doublelist(&TensorInBin[i],0);
+	}
+	free(TensorInBin);
+	return ES_OK;
 }

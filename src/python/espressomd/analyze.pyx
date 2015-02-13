@@ -140,7 +140,35 @@ def pressure(system, etype = 'all', id1 = 'default', id2 = 'default'):
   else:
     pressure = c_analyze.analyze_pressure.analyze_pressure_single(etype,id1,id2)
     return pressure
+ 
+def stress_tensor(system, etype = 'all', id1 = 'default', id2 = 'default'):
+  cdef vector[string] stress_labels
+  cdef vector[double] stresses
+ 
+  if system.n_part == 0:
+    print  'no particles'
+    return 'no particles'
+   
+  v_comp = 0 # TODO OWEN PUT IN A REASONABLE VALUE
+  if etype=='all':
+    c_analyze.analyze_stress_tensor_all(v_comp, &stress_labels, &stresses)
+    return stress_labels, stresses
+  elif id2 == 'default' and id1 != 'default':
+    stress = c_analyze.analyze_pressure.analyze_stress_single(etype,id1)
+    return stress
+  else:
+    stress = c_analyze.analyze_pressure.analyze_stress_pair(etype,id1,id2)
+    return stress
 
+# def local_stress_tensor(system, x_periodic=1, y_periodic=1, z_periodic=1,x_range=0):
+#   cdef vector[string] stress_labels
+#   cdef vector[double] stresses
+# 
+#   if system.n_part == 0:
+#     print  'no particles'
+#     return 'no particles'
+
+#Local stress usage: analyse local_stress_tensor <x_periodic> <y_periodic> <z_periodic> <x_range_start> <y_range_start> <z_range_start> <x_range> <y_range> <z_range> <x_bins> <y_bins> <z_bins>";
 #
 # Energy analysis
 #

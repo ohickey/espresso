@@ -45,6 +45,12 @@ cdef extern from "statistics.hpp":
   cdef double analyse_pressure(string pressure_to_calc, int v_comp)
   cdef double analyse_pressure_pair(string pressure_to_calc, int bond_or_type, int v_comp)
   cdef double analyse_pressure_single(string pressure_to_calc, int bond_or_type, int v_comp)
+  cdef void analyze_stress_tensor_all(int v_comp, vector[string] *stressTensorLabel, vector[double] *stressTensorValues)
+  cdef double* analyze_stress_tensor(string pressure_to_calc, int v_comp)
+  cdef double* analyse_stress_pair(string pressure_to_calc, int type1, int type2, int v_comp)
+  cdef double* analyse_stress_single(string pressure_to_calc, int bond_or_type, int v_comp)
+  cdef analyze_local_stress_tensor(int* input_args, DoubleList* local_stress_tensor)
+
 
 cdef extern from "energy.hpp":
   cdef Observable_stat total_energy
