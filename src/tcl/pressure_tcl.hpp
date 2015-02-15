@@ -56,7 +56,7 @@ int tclcommand_analyze_parse_and_print_p_IK1(Tcl_Interp *interp, int argc, char 
 /** implementation of 'analyze stress_tensor' */
 int tclcommand_analyze_parse_and_print_stress_tensor(Tcl_Interp *interp, int v_comp, int argc, char **argv);
 
-/** implementation of 'analyse local_stress_tensor */
+/** implementation of 'analyze local_stress_tensor */
 int tclcommand_analyze_parse_local_stress_tensor(Tcl_Interp *interp, int argc, char **argv);
 
 /*@}*/

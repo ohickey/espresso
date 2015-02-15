@@ -149,7 +149,7 @@ lappend tablenames n9_c160_22.tab
 
 #Set the size of the 2d grid for calculating the membrane height
 #function.  Used to calculate stray lipids lipid flip-flip rates and
-#for fluctuation analyses
+#for fluctuation analyzes
 set mgrid 8
 
 # Distance from the bilayer beyond which a lipid is considered to be

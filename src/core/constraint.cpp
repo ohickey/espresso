@@ -68,13 +68,13 @@ static double sign(double x) {
 
 int Shape::calculate_dist(Particle *p1, double ppos[3], Particle *c_p, double *dist, double *vec)
 {
-  return 1; //if calculate_dist not implemented in derived class, calculate_dist fails
+  return ES_ERROR; //if calculate_dist not implemented in derived class, calculate_dist fails
 }
 
 int Constraint_box::calculate_dist(Particle *p1, double ppos[3], Particle *c_p, double *dist, double *vec)
 {
   *dist = -1;
-  return 0;
+  return ES_OK;
 }
 
 int Constraint_wall::calculate_dist(Particle *p1, double ppos[3], Particle *c_p, double *dist, double *vec)
@@ -85,7 +85,7 @@ int Constraint_wall::calculate_dist(Particle *p1, double ppos[3], Particle *c_p,
   for(i=0;i<3;i++) *dist += ppos[i]*this->n[i];
   
   for(i=0;i<3;i++) vec[i] = this->n[i] * *dist;
-  return 0;
+  return ES_OK;
 }
 
 
@@ -112,7 +112,7 @@ int Constraint_sphere::calculate_dist(Particle *p1, double ppos[3], Particle *c_
     fac = *dist / c_dist;
     for(i=0;i<3;i++) vec[i] *= -fac;
   }
-  return 0;
+  return ES_OK;
 }
 
 
@@ -178,7 +178,7 @@ int Constraint_maze::calculate_dist(Particle *p1, double ppos[3], Particle *c_p,
     *dist = cyl_dist;
     for(i=0;i<3;i++) vec[i] = cyl_vec[i];  
   }
-  return 0;
+  return ES_OK;
 }
 
 int Constraint_cylinder::calculate_dist(Particle *p1, double ppos[3], Particle *c_p, double *dist, double *vec)
@@ -244,7 +244,7 @@ int Constraint_cylinder::calculate_dist(Particle *p1, double ppos[3], Particle *
       }	
     }
   }
-  return 0;
+  return ES_OK;
 }
 
 int Constraint_spherocylinder::calculate_dist(Particle *p1, double ppos[3], Particle *c_p, double *dist, double *vec)
@@ -282,7 +282,7 @@ int Constraint_spherocylinder::calculate_dist(Particle *p1, double ppos[3], Part
   else
 	  (this)->Constraint_cylinder::calculate_dist(p1, ppos, c_p, dist, vec);
 
-  return 0;
+  return ES_OK;
 }
 
 int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *c_p, double *dist, double *vec)
@@ -330,7 +330,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 		
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 		
-	  return  0;
+	  return  ES_OK;
 	}
 	
 	//check for cone at pos+a
@@ -350,7 +350,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 		
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 		
-	  return  0;
+	  return  ES_OK;
 	}
 	
 	//check for cone at pos+b
@@ -370,7 +370,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 		
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 		
-		return  0;
+		return  ES_OK;
 	}
 	
 	//check for cone at pos+c
@@ -390,7 +390,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 		
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 	
-	  return  0;
+	  return  ES_OK;
 	}
 	
 	//check for cone at pos+a+b
@@ -410,7 +410,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 		
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 
-    return  0;
+    return ES_OK;
 	}
 	
 	//check for cone at pos+a+c
@@ -430,7 +430,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 		
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 
-    return  0;
+    return  ES_OK;
 	}
 	
 	//check for cone at pos+a+c
@@ -450,7 +450,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 		
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 
-    return  0;
+    return  ES_OK;
 	}
 	
 	//check for cone at pos+a+b+c
@@ -470,7 +470,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 		
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 
-    return  0;
+    return  ES_OK;
 	}
 	
 	//check for prism at edge pos, a
@@ -491,7 +491,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 		
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 		
-    return  0;
+    return  ES_OK;
 	}
 	
 	//check for prism at edge pos, b
@@ -512,7 +512,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 	
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 	
-    return  0;
+    return  ES_OK;
 	}
 	
 	//check for prism at edge pos, c
@@ -533,7 +533,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 
-    return  0;
+    return  ES_OK;
 	}
 	
 	//check for prism at edge pos+a, b
@@ -554,7 +554,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 
-    return  0;
+    return  ES_OK;
 	}
 	
 	//check for prism at edge pos+a, c
@@ -575,7 +575,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 
-    return  0;
+    return  ES_OK;
 	}
 	
 	//check for prism at edge pos+b+c, c
@@ -596,7 +596,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 
-    return  0;
+    return  ES_OK;
 	}
 	
 	//check for prism at edge pos+b+c, b
@@ -617,7 +617,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 
-    return  0;
+    return  ES_OK;
 	}
 	
 	//check for prism at edge pos+b+c, a
@@ -638,7 +638,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 
-    return  0;
+    return  ES_OK;
 	}
 	
 	//check for prism at edge pos+a+b, a
@@ -659,7 +659,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 
-    return  0;
+    return  ES_OK;
 	}
 	
 	//check for prism at edge pos+a+b, c
@@ -680,7 +680,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 
-    return  0;
+    return  ES_OK;
 	}
 	
 	//check for prism at edge pos+a+c, a
@@ -701,7 +701,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 
-    return  0;
+    return  ES_OK;
 	}
 	
 	//check for prism at edge pos+a+c, b
@@ -722,7 +722,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 
 		*dist = this->direction * sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
 
-    return  0;
+    return  ES_OK;
 	}
 	
 	//check for face with normal -axb
@@ -741,7 +741,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 	
 		*dist *= this->direction;
 
-    return  0;
+    return  ES_OK;
 	}
 	
 	//calculate distance to face with normal axc
@@ -759,7 +759,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 
 		*dist *= this->direction;
 
-    return  0;
+    return  ES_OK;
 	}
 	
 	//calculate distance to face with normal -bxc
@@ -778,7 +778,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 		
 		*dist *= this->direction;
 
-    return  0;
+    return  ES_OK;
 	}
 	
 	//calculate distance to face with normal axb
@@ -796,7 +796,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 	
 		*dist *= this->direction;
 
-    return  0;
+    return  ES_OK;
 	}
 																					
 	//calculate distance to face with normal -axc
@@ -815,7 +815,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 		
 		*dist *= this->direction;
 
-    return  0;
+    return  ES_OK;
 	}
 																		
 	//calculate distance to face with normal bxc
@@ -833,7 +833,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 		
 		*dist *= this->direction;
 
-    return  0;
+    return  ES_OK;
 	}
 	
 	//ppos lies within rhomboid. Find nearest wall for interaction.
@@ -927,7 +927,7 @@ int Constraint_rhomboid::calculate_dist(Particle *p1, double ppos[3], Particle *
 	
 		*dist = this->direction * d;
 	}
-	return 0;
+	return ES_OK;
 }
 
 int Constraint_pore::calculate_dist(Particle *p1, double* ppos, Particle *c_p, double *dist, double *vec)
@@ -1008,7 +1008,7 @@ int Constraint_pore::calculate_dist(Particle *p1, double* ppos, Particle *c_p, d
     dist_vector_r=0;
     *dist = -z - this->length;
     for (i=0; i<3; i++) vec[i]=-dist_vector_r*e_r[i] - dist_vector_z*e_z[i];
-    return 0;
+    return ES_OK;
   }
   /* Check if we are in the region of the right wall */
   if (( (r >= c2_r) && (r<c2_or) && (z >= c2_z) ) ) {
@@ -1016,7 +1016,7 @@ int Constraint_pore::calculate_dist(Particle *p1, double* ppos, Particle *c_p, d
     dist_vector_r=0;
     *dist = +z - this->length;
     for (i=0; i<3; i++) vec[i]=-dist_vector_r*e_r[i] - dist_vector_z*e_z[i];
-    return 0;
+    return ES_OK;
   }
 
   /* check if the particle should feel the smoothed ends or the middle of the pore */
@@ -1049,7 +1049,7 @@ int Constraint_pore::calculate_dist(Particle *p1, double* ppos, Particle *c_p, d
     dist_vector_r-=dist_vector_r/temp*this->smoothing_radius;
     dist_vector_z-=dist_vector_z/temp*this->smoothing_radius;
     for (i=0; i<3; i++) vec[i]=-dist_vector_r*e_r[i] - dist_vector_z*e_z[i];
-    return 0;
+    return ES_OK;
   }
 
 
@@ -1059,7 +1059,7 @@ int Constraint_pore::calculate_dist(Particle *p1, double* ppos, Particle *c_p, d
     dist_vector_r_o-=dist_vector_r_o/temp*this->smoothing_radius;
     dist_vector_z_o-=dist_vector_z_o/temp*this->smoothing_radius;
     for (i=0; i<3; i++) vec[i]=-dist_vector_r_o*e_r[i] - dist_vector_z_o*e_z[i];
-    return 0;
+    return ES_OK;
   }
 
 
@@ -1071,7 +1071,7 @@ int Constraint_pore::calculate_dist(Particle *p1, double* ppos, Particle *c_p, d
     dist_vector_r=(this->smoothing_radius/norm -1)*(r - c1_r);
     dist_vector_z=(this->smoothing_radius/norm - 1)*(z - c1_z);
     for (i=0; i<3; i++) vec[i]=-dist_vector_r*e_r[i] - dist_vector_z*e_z[i];
-    return 0;
+    return ES_OK;
   }
   /* upper left smoothing circle */
   if (p2_z <= c1_z && r >= c1_or ) {
@@ -1081,7 +1081,7 @@ int Constraint_pore::calculate_dist(Particle *p1, double* ppos, Particle *c_p, d
     dist_vector_r=(this->smoothing_radius/norm -1)*(r - c1_or);
     dist_vector_z=(this->smoothing_radius/norm - 1)*(z - c1_z);
     for (i=0; i<3; i++) vec[i]=-dist_vector_r*e_r[i] - dist_vector_z*e_z[i];
-    return  0;
+    return ES_OK;
   }
   /* Check if we are in the range of the right smoothing circle */
   if (p1_z >= c2_z && r <= c2_r ) {
@@ -1090,7 +1090,7 @@ int Constraint_pore::calculate_dist(Particle *p1, double* ppos, Particle *c_p, d
     dist_vector_r=(this->smoothing_radius/norm -1)*(r - c2_or);
     dist_vector_z=(this->smoothing_radius/norm - 1)*(z - c2_z);
     for (i=0; i<3; i++) vec[i]=-dist_vector_r*e_r[i] - dist_vector_z*e_z[i];
-    return  0;
+    return ES_OK;
   }
   /* Check if we are in the range of the upper right smoothing circle */
   if (p2_z >= c2_z && r >= c2_or ) {
@@ -1099,11 +1099,11 @@ int Constraint_pore::calculate_dist(Particle *p1, double* ppos, Particle *c_p, d
     dist_vector_r=(this->smoothing_radius/norm -1)*(r - c2_or);
     dist_vector_z=(this->smoothing_radius/norm - 1)*(z - c2_z);
     for (i=0; i<3; i++) vec[i]=-dist_vector_r*e_r[i] - dist_vector_z*e_z[i];
-    return  0;
+    return ES_OK;
   }
   *dist=-1e99;
   vec[0] = vec[1] = vec[2] = 1e99;
-  return 0;
+  return ES_OK;
 //  exit(printf("should never be reached, z %f, r%f\n",z, r));
 }
 
@@ -1129,7 +1129,7 @@ int Constraint_plane::calculate_dist(Particle *p1, double* ppos, Particle *c_p, 
   for(i=0;i<3;i++) {
     vec[i] *= -1;
   }
-  return 0;
+  return ES_OK;
 }
 
 int Constraint_stomatocyte::calculate_dist( Particle *p1, double* ppos,
@@ -1675,7 +1675,7 @@ int Constraint_stomatocyte::calculate_dist( Particle *p1, double* ppos,
   vec[0] *= *dist;
   vec[1] *= *dist;
   vec[2] *= *dist;
-  return 0;
+  return ES_OK;
 }
 
 int Constraint_hollow_cone::calculate_dist( Particle *p1, double ppos [3],
@@ -2157,7 +2157,7 @@ int Constraint_hollow_cone::calculate_dist( Particle *p1, double ppos [3],
   vec[0] *= *dist;
   vec[1] *= *dist;
   vec[2] *= *dist;
-  return 0;
+  return ES_OK;
 }
 
 void Constraint_rod::add_constraint_force_default (Constraint* current_constraint, Particle *p1, double* folded_pos, double* force, double* torque1, double* torque2, IA_parameters* ia_params)
@@ -2450,7 +2450,7 @@ int Constraint_slitpore::calculate_dist(Particle *p1, double ppos[3], Particle *
     *dist = this->pore_mouth + this->channel_width - ppos[2];
     vec[0] = vec[1] = 0;
     vec[2] = -*dist;
-    return 0;
+    return ES_OK;
   }
 
   if (ppos[0]<c11[0] || ppos[0] > c21[0]) {
@@ -2459,7 +2459,7 @@ int Constraint_slitpore::calculate_dist(Particle *p1, double ppos[3], Particle *
     *dist = ppos[2] - this->pore_mouth;
     vec[0] = vec[1] = 0;
     vec[2] = *dist;
-    return 0;
+    return ES_OK;
   }
 
   if (ppos[2] > c11[1]) {
@@ -2470,14 +2470,14 @@ int Constraint_slitpore::calculate_dist(Particle *p1, double ppos[3], Particle *
       vec[0] = -( c11[0] - ppos[0] ) * (*dist)/(*dist+this->upper_smoothing_radius);
       vec[1] = 0;
       vec[2] = -( c11[1] - ppos[2] ) * (*dist)/(*dist+this->upper_smoothing_radius);
-      return 0;
+      return ES_OK;
     } else {
 //    printf("upper smoothing right\n");
       *dist = sqrt( SQR(c21[0] - ppos[0]) + SQR(c21[1] - ppos[2])) - this->upper_smoothing_radius;
       vec[0] = -( c21[0] - ppos[0] ) * (*dist)/(*dist+this->upper_smoothing_radius);
       vec[1] = 0;
       vec[2] = -( c21[1] - ppos[2] ) * (*dist)/(*dist+this->upper_smoothing_radius);
-      return 0;
+      return ES_OK;
     }
   }
   
@@ -2488,13 +2488,13 @@ int Constraint_slitpore::calculate_dist(Particle *p1, double ppos[3], Particle *
       *dist = ppos[0] - (box_l_x/2-this->pore_width/2);
       vec[0]=*dist;
       vec[1]=vec[2]=0;
-      return 0;
+      return ES_OK;
     } else {
 //    printf("pore right\n");
       *dist =  (box_l_x/2+this->pore_width/2) - ppos[0];
       vec[0]=-*dist;
       vec[1]=vec[2]=0;
-      return 0;
+      return ES_OK;
     }
   }
 
@@ -2504,7 +2504,7 @@ int Constraint_slitpore::calculate_dist(Particle *p1, double ppos[3], Particle *
     *dist = ppos[2] - (this->pore_mouth-this->pore_length);
     vec[0]=vec[1]=0;
     vec[2]=*dist;
-    return 0;
+    return ES_OK;
   }
   // Else
   // Feel the lower smoothing
@@ -2514,17 +2514,17 @@ int Constraint_slitpore::calculate_dist(Particle *p1, double ppos[3], Particle *
       vec[0] = ( c12[0] - ppos[0] ) * (*dist)/(-*dist+this->lower_smoothing_radius);
       vec[1] = 0;
       vec[2] = ( c12[1] - ppos[2] ) * (*dist)/(-*dist+this->lower_smoothing_radius);
-      return 0;
+      return ES_OK;
     } else {
 //    printf("lower smoothing right\n");
       *dist = -sqrt( SQR(c22[0] - ppos[0]) + SQR(c22[1] - ppos[2])) + this->lower_smoothing_radius;
       vec[0] = ( c22[0] - ppos[0] ) * (*dist)/(-*dist+this->lower_smoothing_radius);
       vec[1] = 0;
       vec[2] = ( c22[1] - ppos[2] ) * (*dist)/(-*dist+this->lower_smoothing_radius);
-      return 0;
+      return ES_OK;
     }
 
-    return 0;
+    return ES_OK;
 }
 #endif
 

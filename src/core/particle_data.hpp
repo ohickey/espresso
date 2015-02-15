@@ -95,7 +95,7 @@ typedef struct {
 #endif
 
 #ifdef ROTATION_PER_PARTICLE
-  // Determines, wether a particle's rotational degrees of freedom are
+  // Determines, weather a particle's rotational degrees of freedom are
   // integrated
   int rotation;
 #endif
@@ -521,7 +521,7 @@ int set_particle_solvation(int part, double* solvation);
     @return ES_OK if particle existed
 */
 int set_particle_rotational_inertia(int part, double rinertia[3]);
-void pointer_to_rotational_inertia(Particle* p, double* rinertia);
+void pointer_to_rotational_inertia(Particle* p, double*& rinertia);
 #endif
 
 #ifdef ROTATION_PER_PARTICLE

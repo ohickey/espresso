@@ -130,7 +130,7 @@ static double lb_coupl_pref2 = 0.0;
 /*@}*/
 
 /** measures the MD time since the last fluid update */
-static double fluidstep=0.0;
+static double MDstepsSinceUpdate=0.0;
 
 #ifdef ADDITIONAL_CHECKS
 /** counts the random numbers drawn for fluctuating LB and the coupling */
@@ -2757,11 +2757,11 @@ inline void lb_stream_collide() {
  * monitor the time since the last lattice update.
  */
 void lattice_boltzmann_update() {
-    int factor = (int)round(lbpar.tau/time_step);
+    int MDstepsPerLBStep = (int)round(lbpar.tau/time_step);
 
-    fluidstep += 1;
-    if (fluidstep>=factor) {
-        fluidstep=0;
+    MDstepsSinceUpdate += 1;
+    if (MDstepsSinceUpdate>=MDstepsPerLBStep) {
+        MDstepsSinceUpdate=0;
 #ifdef PULL
         lb_stream_collide();
 #else // PULL

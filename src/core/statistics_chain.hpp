@@ -23,7 +23,7 @@
 /** \file statistics_chain.hpp 
 
     This file contains the code for statistics on the data using the
-    molecule information set with analyse set chains.
+    molecule information set with analyze set chains.
 */
 
 /** \name Exported Variables */

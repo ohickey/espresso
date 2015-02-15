@@ -250,7 +250,7 @@ test_catch {
 
   for { set i 0 } { $i < [setmd n_part] } { incr i } { lappend plist $i }
 
-  #dived box into 4 cuboids - analyse local_stress_tensor in each cuboid  (many bins in each cuboid)
+  #dived box into 4 cuboids - analyze local_stress_tensor in each cuboid  (many bins in each cuboid)
   set box_l [setmd box_l]
   set startx 0.93
   set widthx 0.49

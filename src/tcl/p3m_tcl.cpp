@@ -87,8 +87,6 @@ int tclcommand_inter_coulomb_parse_p3m_tune(Tcl_Interp * interp, int argc, char 
   
   
   if ( (mesh[0]%2 != 0 && mesh[0] != -1) || (mesh[1]%2 != 0 && mesh[1] != -1) || (mesh[2]%2 != 0 && mesh[2] != -1) ) {
-        printf ("y cond me %d %d %d\n", mesh[1], mesh[1]%2 != 0, mesh[1] != -1);
- // if ( ( mesh[0]%2 != 0) && (mesh[0] != -1) ) {
     Tcl_AppendResult(interp, "P3M requires an even number of mesh points in all directions", (char *) NULL);
     return TCL_ERROR;
   }

@@ -15,7 +15,9 @@
 #  
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>. 
-#  
+#
+import numpy as np
+
 cdef extern from "stdlib.h":
   void free(void* ptr)
   void* malloc(size_t size)
@@ -39,6 +41,17 @@ cdef np.ndarray create_nparray_from_IntList(IntList* il):
   for i in range(il.n):
     numpyArray[i] = il.e[i]
 
+  return numpyArray
+
+cdef np.ndarray create_nparray_from_DoubleList(DoubleList* dl):
+  numpyArray = np.zeros(dl.n)
+  for i in range(dl.n):
+    numpyArray[i] = dl.e[i]
+
+cdef np.ndarray create_nparray_from_DoubleArray(double* doubleArray, int size):
+  numpyArray = np.zeros(size)
+  for i in range(size):
+    numpyArray[i] = doubleArray[i]
   return numpyArray
 
 cdef checkTypeOrExcept(x,n,t,msg):

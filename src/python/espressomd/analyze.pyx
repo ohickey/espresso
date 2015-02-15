@@ -30,51 +30,61 @@ from libcpp.vector cimport vector #import std::vector as vector
 #
 # Minimal distance between particles
 #
-def mindist(system, p1 = 'default', p2 = 'default'):
+def mindist(system=None, p1 = 'default', p2 = 'default'):
 
   cdef IntList* set1
   cdef IntList* set2
 
+  if (system == None):
+    raise Exception("Must provide system to mindist")
+
   if p1 == 'default' and p2 == 'default':
     result = c_analyze.mindist(NULL,NULL)
-  elif p1 == 'default' and not p2 == 'default':
-    print 'usage: mindist([typelist],[typelist])'
-    return 0
-  elif not p1 == 'default' and p2 == 'default':
-    print 'usage: mindist([typelist],[typelist])'
-    return 0
-  else:
-    for i in range(len(p1)):
+    return result
+
+  if p1 == 'default' and not p2 == 'default':
+    raise Exception('usage: mindist([typelist],[typelist])')
+
+  if not p1 == 'default' and p2 == 'default':
+    raise Exception('usage: mindist([typelist],[typelist])')
+
+  for i in range(len(p1)):
       if not isinstance(p1[i],int):
-        print 'usage: mindist([typelist],[typelist])'
-        return 0
+        raise Exception('usage: mindist([typelist],[typelist])')
 
-    for i in range(len(p2)):
-      if not isinstance(p2[i],int):
-        print 'usage: mindist([typelist],[typelist])'
-        return 0
-  
-    set1 = create_IntList_from_python_object(p1)
-    set2 = create_IntList_from_python_object(p2)
+  for i in range(len(p2)):
+    if not isinstance(p2[i],int):
+      raise Exception('usage: mindist([typelist],[typelist])')
 
-    result = c_analyze.mindist(set1, set2)
+  set1 = create_IntList_from_python_object(p1)
+  set2 = create_IntList_from_python_object(p2)
 
-    realloc_intlist(set1, 0)
-    realloc_intlist(set2, 0)
+  result = c_analyze.mindist(set1, set2)
 
-# The following lines are probably not necessary.
-#  free (set1)
-#  free (set2)
+# # The following lines are probably not necessary.
+#   realloc_intlist(set1, 0)
+#   realloc_intlist(set2, 0)
+  free (set1)
+  free (set2)
 
   return result
 
 # get all particles in neighborhood r_catch of pos and return their ids
 # in il. plane can be used to specify the distance in the xy, xz or yz
 # plane
-def nbhood(system, pos, r_catch, plane = '3d'):
+def nbhood(system=None, pos=None, r_catch=None, plane = '3d'):
   cdef int planedims[3]
-  cdef IntList* il = NULL
+  cdef IntList* il
   cdef double c_pos[3]
+
+  il = <IntList*> malloc (sizeof(IntList))
+
+  if (system == None):
+    print 'Must provide system to mindist'
+    return 1
+  
+  checkTypeOrExcept(pos, 3, float, "_pos=(float,float,float) must be passed to nbhood")
+  checkTypeOrExcept(r_catch, 1, float, "r_catch=float needs to be passed to nbhood")
 
   if system.n_part == 0:
     print  'no particles'
@@ -90,14 +100,17 @@ def nbhood(system, pos, r_catch, plane = '3d'):
     planedims[1] = 0
   elif plane == 'yz':
     planedims[0] = 0
-  else:
-    raise Exception("Invalid argument for specifying plane, must be xy, xz, or yz plane")
-  
+  elif plane != '3d':
+    raise Exception('Invalid argument for specifying plane, must be xy, xz, or yz plane')
+
   for i in range(3):
     c_pos[i] = pos[i]
 
   c_analyze.nbhood(c_pos, r_catch, il, planedims);
-  return create_nparray_from_IntList(il)
+
+  result = create_nparray_from_IntList(il)
+  free(il)
+  return result
 #
 # Distance to particle or point
 #
@@ -122,53 +135,93 @@ def distto(system, id_or_pos):
 #
 # Pressure analysis
 #
-def pressure(system, etype = 'all', id1 = 'default', id2 = 'default'):
+def pressure(system, ptype = 'all', id1 = 'default', id2 = 'default', v_comp=False):
   cdef vector[string] pressure_labels
   cdef vector[double] pressures
 
   if system.n_part == 0:
     print  'no particles'
     return 'no particles'
-  
-  v_comp = 0 # TODO OWEN PUT IN A REASONABLE VALUE
-  if etype=='all':
-    c_analyze.analyze_pressure_all(v_comp, &pressure_labels, &pressures)
+
+  checkTypeOrExcept(v_comp, 1, bool, "v_comp must be a boolean")
+
+  if ptype=='all':
+    c_analyze.analyze_pressure_all(&pressure_labels, &pressures, v_comp)
     return pressure_labels, pressures
-  elif id2 == 'default' and id1 != 'default':
-    pressure = c_analyze.analyze_pressure.analyze_pressure_single(etype,id1)
+  elif id1 == 'default' and id2 == 'default':
+    pressure = c_analyze.analyze_pressure(ptype, v_comp)
+    return pressure
+  elif id1 != 'default' and id2 == 'default':
+    checkTypeOrExcept(id1, 1, int, "id1 must be an int")
+    pressure = c_analyze.analyze_pressure_single(ptype, id1, v_comp)
     return pressure
   else:
-    pressure = c_analyze.analyze_pressure.analyze_pressure_single(etype,id1,id2)
+    checkTypeOrExcept(id1, 1, int, "id1 must be an int")
+    checkTypeOrExcept(id2, 1, int, "id2 must be an int")
+    pressure = c_analyze.analyze_pressure_pair(ptype, id1, id2, v_comp)
     return pressure
  
-def stress_tensor(system, etype = 'all', id1 = 'default', id2 = 'default'):
+def stress_tensor(system, stress_type = 'all', id1 = 'default', id2 = 'default', v_comp=False):
   cdef vector[string] stress_labels
   cdef vector[double] stresses
- 
+  cdef double *stress
+  
+  if system.n_part == 0:
+    print  'no particles'
+    return 'no particles'
+  checkTypeOrExcept(v_comp, 1, bool, "v_comp must be a boolean")
+  
+  if stress_type=='all':
+    c_analyze.analyze_stress_tensor_all(&stress_labels, &stresses, v_comp)
+    return stress_labels, stresses
+  elif id1 == 'default' and id2 == 'default':
+    stress = <double*> malloc (9*sizeof(double))
+    if (c_analyze.analyze_stress_tensor(stress_type, v_comp, stress)):
+      free(stress)
+      raise Exception("Error while calculating stress tensor")
+    npArrayStress = create_nparray_from_DoubleArray(stress, 9)
+    free(stress)
+    return npArrayStress
+  elif id1 != 'default' and id2 == 'default':
+    checkTypeOrExcept(id1, 1, int, "id1 must be an int")
+    stress = <double*> malloc (9*sizeof(double))
+    if (c_analyze.analyze_stress_single(stress_type, id1, v_comp, stress)):
+      free(stress)
+      raise Exception("Error while calculating stress tensor")
+    npArrayStress = create_nparray_from_DoubleArray(stress, 9)
+    free(stress)
+    return npArrayStress
+  else:
+    checkTypeOrExcept(id1, 1, int, "id1 must be an int")
+    checkTypeOrExcept(id2, 1, int, "id2 must be an int")
+    stress = <double*> malloc (9*sizeof(double))
+    if (c_analyze.analyze_stress_pair(stress_type, id1, id2, v_comp, stress)):
+      free(stress)
+      raise Exception("Error while calculating stress tensor")
+    npArrayStress = create_nparray_from_DoubleArray(stress, 9)
+    free(stress)
+    return npArrayStress
+     
+def local_stress_tensor(system, periodicity=(1, 1, 1), range_start=(0.0, 0.0, 0.0), stress_range=(1.0, 1.0, 1.0), bins=(1, 1, 1)):
+  cdef DoubleList* local_stress_tensor=NULL
+  cdef int[3] c_periodicity, c_bins
+  cdef double[3] c_range_start, c_stress_range
+   
   if system.n_part == 0:
     print  'no particles'
     return 'no particles'
    
-  v_comp = 0 # TODO OWEN PUT IN A REASONABLE VALUE
-  if etype=='all':
-    c_analyze.analyze_stress_tensor_all(v_comp, &stress_labels, &stresses)
-    return stress_labels, stresses
-  elif id2 == 'default' and id1 != 'default':
-    stress = c_analyze.analyze_pressure.analyze_stress_single(etype,id1)
-    return stress
-  else:
-    stress = c_analyze.analyze_pressure.analyze_stress_pair(etype,id1,id2)
-    return stress
-
-# def local_stress_tensor(system, x_periodic=1, y_periodic=1, z_periodic=1,x_range=0):
-#   cdef vector[string] stress_labels
-#   cdef vector[double] stresses
-# 
-#   if system.n_part == 0:
-#     print  'no particles'
-#     return 'no particles'
-
-#Local stress usage: analyse local_stress_tensor <x_periodic> <y_periodic> <z_periodic> <x_range_start> <y_range_start> <z_range_start> <x_range> <y_range> <z_range> <x_bins> <y_bins> <z_bins>";
+  for i in range(3):
+    c_bins[i]=bins[i]
+    c_periodicity[i]=periodicity[i]
+    c_range_start[i]=range_start[i]
+    c_stress_range[i]=stress_range[i]
+   
+  if c_analyze.analyze_local_stress_tensor(c_periodicity, c_range_start, c_stress_range, c_bins, local_stress_tensor):
+    raise Exception("Error while calculating local stress tensor")
+  stress_tensor =  create_nparray_from_DoubleList(local_stress_tensor)
+  free (local_stress_tensor)
+  return stress_tensor
 #
 # Energy analysis
 #

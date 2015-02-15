@@ -23,7 +23,7 @@
 /** \file statistics_molecule.hpp
 
     This file contains the code for statistics on the data using the
-    molecule information set with analyse set, as it is described in
+    molecule information set with analyze set, as it is described in
     the file \ref topology.hpp.
 */
 

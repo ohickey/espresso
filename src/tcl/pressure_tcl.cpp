@@ -696,7 +696,7 @@ int tclcommand_analyze_parse_local_stress_tensor(Tcl_Interp *interp, int argc, c
     Tcl_AppendResult(interp, "local_stress_tensor requires 12 inputs: x_periodic, y_periodic, z_periodic, x_range_start, y_range_start, z_range_start, x_range, y_range, z_range, x_bins, y_bins, z_bins", (char *)NULL);
     return(TCL_ERROR);
   }
-  const char *usage = "usage: analyse local_stress_tensor <x_periodic> <y_periodic> <z_periodic> <x_range_start> <y_range_start> <z_range_start> <x_range> <y_range> <z_range> <x_bins> <y_bins> <z_bins>";
+  const char *usage = "usage: analyze local_stress_tensor <x_periodic> <y_periodic> <z_periodic> <x_range_start> <y_range_start> <z_range_start> <x_range> <y_range> <z_range> <x_bins> <y_bins> <z_bins>";
  
   for (i=0;i<3;i++) {
     if ( !ARG0_IS_I(periodic[i]) ) {

@@ -24,6 +24,7 @@
     This file contains the code for statistics on the data.
 */
 #include <vector>
+#include <string>
 #include "particle_data.hpp"
 #include "interaction_data.hpp"
 #include "utils.hpp"
@@ -375,20 +376,6 @@ void predict_momentum_particles(double *result);
 \todo Docs missing
 */
 void momentum_calc(double *momentum);
-
-void update_pressure(int v_comp);
-void analyze_pressure_all(int v_comp, std::vector<std::string> *pressure_labels, std::vector<double> *pressures);
-double analyse_pressure(std::string pressure_to_calc, int v_comp);
-double analyse_pressure_pair(std::string pressure_to_calc, int bond_or_type, int v_comp);
-double analyse_pressure_single(std::string pressure_to_calc, int bond_or_type, int v_comp);
-
-void update_stress_tensor(int v_comp);
-void analyze_stress_tensor_all(int v_comp, std::vector<std::string> *stressTensorLabel, std::vector<double> *stressTensorValues);
-double* analyze_stress_tensor(std::string pressure_to_calc, int v_comp);
-double* analyse_stress_pair(std::string pressure_to_calc, int type1, int type2, int v_comp);
-double* analyse_stress_single(std::string pressure_to_calc, int bond_or_type, int v_comp);
-int analyze_local_stress_tensor(int* input_args, DoubleList* local_stress_tensor);
-
 
 inline double *obsstat_bonded(Observable_stat *stat, int j)
 {

@@ -81,7 +81,7 @@ void calc_trap_force()
 
   if ( !topo_part_info_synced ) {
       ostringstream msg;
-      msg <<"can't calculate moltrap: must execute analyse set topo_part_sync first";
+      msg <<"can't calculate moltrap: must execute analyze set topo_part_sync first";
       runtimeError(msg);
     return;
   } else {
@@ -382,7 +382,7 @@ void calc_mol_info () {
   /* check to see if all the topology information has been synced to the various slave nodes */
   if ( !topo_part_info_synced ) {
       ostringstream msg;
-      msg << "can't calculate molforces: must execute analyse set topo_part_sync first";
+      msg << "can't calculate molforces: must execute analyze set topo_part_sync first";
       runtimeError(msg);
     return;
   }

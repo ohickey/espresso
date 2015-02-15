@@ -22,6 +22,7 @@ cimport numpy as np
 
 cdef extern from "stdlib.h":
   void free(void* ptr)
+  void* calloc(size_t size)
   void* malloc(size_t size)
   void* realloc(void* ptr, size_t size)
             
@@ -43,3 +44,5 @@ cdef extern from "utils.hpp":
 cdef IntList* create_IntList_from_python_object(obj)
 cdef np.ndarray create_nparray_from_IntList(IntList *il)
 cdef checkTypeOrExcept(x,n,t,msg)
+cdef np.ndarray create_nparray_from_DoubleArray(double* doubleArray, int size)
+cdef np.ndarray create_nparray_from_DoubleList(DoubleList* dl)

@@ -92,7 +92,7 @@ electrokinetics boundary charge_density 0.0 wall normal 0 0 -1 d -[expr $padding
 integrate $integration_length
 
 ################################################################################
-#                              Analyse the system                              # 
+#                              analyze the system                              # 
 ################################################################################
 
 # Calculate the inverse length Xi, which is a combination of various
