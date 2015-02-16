@@ -30,13 +30,15 @@ import cuda_init
 import code_info
 
 
-cdef class System:
-    doge = 1
-    part = particle_data.particleList()
-    nonBondedInter = interactions.NonBondedInteractions()
-    bondedInter = interactions.BondedInteractions()
-    analyzer = analyze.Analysis()
-    integrator = integrate.Integrator()
+cdef class System(object):
+    def __init__(self):
+      self.doge = 1
+      self.part = particle_data.particleList()
+      self.nonBondedInter = interactions.NonBondedInteractions()
+      self.bondedInter = interactions.BondedInteractions()
+      self.integrator = integrate.Integrator()
+      self.analyzer = analyze.Analysis(self)
+
 #    def __init__(self):
 #        self.part = particle_data.particleList()
 #        self.nonBondedInter = interactions.NonBondedInteractions()
@@ -229,7 +231,7 @@ cdef class System:
                 raise ValueError("Skin must be >= 0")
             global skin
             skin=_skin
-            mpi_bcast_parameter(28)
+            mpi_bcast_parameter(FIELD_SKIN)
         def __get__(self): 
             global skin
             return skin

@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>. 
 #  
 from utils cimport *
-cdef class Integrator:
+class Integrator(object):
   def integrate(self, nSteps, recalc_forces=False, reuse_forces=False):
     checkTypeOrExcept(nSteps,1,int,"Integrate requires a positive integer")
     checkTypeOrExcept(recalc_forces,1,bool,"Integrate requires a positive integer")

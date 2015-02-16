@@ -26,7 +26,11 @@ import code_info
 import particle_data
 from libcpp.string cimport string #import std::string as string
 from libcpp.vector cimport vector #import std::vector as vector
-cdef class Analysis:
+class Analysis(object):
+  def __init__ (self, system=None):
+    if (system==None):
+      raise Exception("Must pass a system instance to initiate an analyzer instance of Analysis!")
+    self._system = system
   #
   # Minimal distance between particles
   #
@@ -103,13 +107,10 @@ cdef class Analysis:
   #
   # Distance to particle or point
   #
-  def distto(self, system, id_or_pos):
+  def distto(self, id_or_pos):
     cdef double cpos[3]
   
-    if (system == None):
-      raise Exception("Must provide system to mindist")
-  
-    if system.n_part == 0:
+    if self._system.n_part == 0:
       print  'no particles'
       return 'no particles'
   
@@ -207,8 +208,8 @@ cdef class Analysis:
   #
   # Energy analysis
   #
-  def energy(self, system, etype = 'all', id1 = 'default', id2 = 'default'):
-    if system.n_part == 0:
+  def energy(self, etype = 'all', id1 = 'default', id2 = 'default'):
+    if self._system.n_part == 0:
       print  'no particles'
       return 'no particles'
   
@@ -218,8 +219,8 @@ cdef class Analysis:
     _value = 0.0
   
     if etype == 'all':
-      _result = self.energy(system, etype = 'total') + ' ' + self.energy(system, etype = 'kinetic')
-      _result += self.energy(system, etype = 'nonbonded', id1=0, id2=0)
+      _result = self.energy(etype = 'total') + ' ' + self.energy(etype = 'kinetic')
+      _result += self.energy(etype = 'nonbonded', id1=0, id2=0)
       # todo: check for existing particle and bond types
       # and add those to _result
       return _result

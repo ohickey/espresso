@@ -77,7 +77,9 @@ int_n_times = 5
 #############################################################
 
 system.box_l = [box_l,box_l,box_l]
-
+print(dir(system))
+print(system.__dict__)
+print("try to do something with nonbondedinter")
 system.nonBondedInter[0,0].lennardJones.setParams(
     epsilon=lj_eps, sigma=lj_sig,
     cutoff=lj_cut, shift="auto")
@@ -95,7 +97,7 @@ n_part = int(volume*density)
 for i in range(n_part):
   system.part[i].pos=numpy.random.random(3)*system.box_l
 
-system.analyzer.distto(system, 0)
+system.analyzer.distto(0)
 
 print("Simulate {} particles in a cubic simulation box {} at density {}."
   .format(n_part, box_l, density).strip())
@@ -179,7 +181,7 @@ print(system.nonBondedInter[0,0].lennardJones)
 
 # print initial energies
 #energies = es._espressoHandle.Tcl_Eval('analyze energy')
-energies = system.analyzer.energy(system=system)
+energies = system.analyzer.energy()
 print(energies)
 
 j = 0
@@ -190,7 +192,7 @@ for i in range(0,int_n_times):
   system.integrator.integrate(int_steps)
   
 #  energies = es._espressoHandle.Tcl_Eval('analyze energy')
-  energies = system.analyzer.energy(system=system)
+  energies = system.analyzer.energy()
   print(energies)
   obs_file.write('{ time %s } %s\n' % (system.time,energies))
 

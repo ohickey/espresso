@@ -26,6 +26,7 @@ cdef extern from "global.hpp":
   int FIELD_NPTISO_PDIFF
   int FIELD_PERIODIC
   int FIELD_SIMTIME
+  int FIELD_SKIN
 
 cdef extern from "communication.hpp":
   extern int n_nodes
