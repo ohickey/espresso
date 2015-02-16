@@ -22,6 +22,8 @@ from globals cimport *
 import numpy as np
 
 import interactions
+import integrate
+import analyze
 cimport cuda_init
 import particle_data
 import cuda_init
@@ -33,6 +35,8 @@ cdef class System:
     part = particle_data.particleList()
     nonBondedInter = interactions.NonBondedInteractions()
     bondedInter = interactions.BondedInteractions()
+    analyzer = analyze.Analysis()
+    integrator = integrate.Integrator()
 #    def __init__(self):
 #        self.part = particle_data.particleList()
 #        self.nonBondedInter = interactions.NonBondedInteractions()

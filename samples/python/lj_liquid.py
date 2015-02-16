@@ -95,12 +95,12 @@ n_part = int(volume*density)
 for i in range(n_part):
   system.part[i].pos=numpy.random.random(3)*system.box_l
 
-analyze.distto(system, 0)
+system.analyzer.distto(system, 0)
 
 print("Simulate {} particles in a cubic simulation box {} at density {}."
   .format(n_part, box_l, density).strip())
 print("Interactions:\n")
-act_min_dist = analyze.mindist()
+act_min_dist = system.analyzer.mindist()
 print("Start with minimal distance {}".format(act_min_dist))
 
 system.max_num_cells = 2744
@@ -130,9 +130,9 @@ print(system.nonBondedInter[0,0].lennardJones)
 # Warmup Integration Loop
 i = 0
 while (i < warm_n_times and act_min_dist < min_dist):
-  integrate.integrate(warm_steps)
+  system.integrator.integrate(warm_steps)
   # Warmup criterion
-  act_min_dist = analyze.mindist() 
+  act_min_dist = system.analyzer.mindist() 
 #  print("\rrun %d at time=%f (LJ cap=%f) min dist = %f\r" % (i,system.time,lj_cap,act_min_dist), end=' ')
   i += 1
 
@@ -179,7 +179,7 @@ print(system.nonBondedInter[0,0].lennardJones)
 
 # print initial energies
 #energies = es._espressoHandle.Tcl_Eval('analyze energy')
-energies = analyze.energy(system=system)
+energies = system.analyzer.energy(system=system)
 print(energies)
 
 j = 0
@@ -187,10 +187,10 @@ for i in range(0,int_n_times):
   print("run %d at time=%f " % (i,system.time))
 
 #  es._espressoHandle.Tcl_Eval('integrate %d' % int_steps)
-  integrate.integrate(int_steps)
+  system.integrator.integrate(int_steps)
   
 #  energies = es._espressoHandle.Tcl_Eval('analyze energy')
-  energies = analyze.energy(system=system)
+  energies = system.analyzer.energy(system=system)
   print(energies)
   obs_file.write('{ time %s } %s\n' % (system.time,energies))
 
