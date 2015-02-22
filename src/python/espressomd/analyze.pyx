@@ -26,11 +26,22 @@ import code_info
 import particle_data
 from libcpp.string cimport string #import std::string as string
 from libcpp.vector cimport vector #import std::vector as vector
+
 class Analysis(object):
   def __init__ (self, system=None):
     if (system==None):
       raise Exception("Must pass a system instance to initiate an analyzer instance of Analysis!")
     self._system = system
+
+  def Python_obs_part_vels (self, inputTypesPy=(0,1,2), inputIdsPy=(0,1,2,3), all_particles=0):
+    cdef IntList* inputTypes
+    cdef IntList* inputIds
+    cdef IntList* output_ids=NULL
+    #inputTypes = create_IntList_from_python_object(inputTypesPy)
+    #inputIds = create_IntList_from_python_object(inputIdsPy)
+    result = c_analyze.create_id_list_from_types_and_ids(output_ids, inputTypes, inputIds, 0)
+    return 1
+
   #
   # Minimal distance between particles
   #
