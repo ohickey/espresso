@@ -36,7 +36,7 @@ cdef class System(object):
       self.part = particle_data.particleList()
       self.nonBondedInter = interactions.NonBondedInteractions()
       self.bondedInter = interactions.BondedInteractions()
-      self.integrator = integrate.Integrator()
+      self.integrater = integrate.Integrater()
       self.analyzer = analyze.Analysis(self)
 
 #    def __init__(self):

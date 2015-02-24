@@ -1268,7 +1268,7 @@ int tcl_command_k_dist(Tcl_Interp* interp, int argc, char** argv, int* change, o
 
 #define REGISTER_OBSERVABLE(name,parser,id) \
   if (ARG_IS_S(2,#name)) { \
-    observables[id]=(s_observable*)malloc(sizeof(observable)); \
+    observables[id]=(observable*)malloc(sizeof(observable)); \
     observable_init(observables[id]); \
     observables[id]->obs_name = (char*)malloc((1+strlen(#name))*sizeof(char)); \
     strcpy(observables[id]->obs_name,#name); \

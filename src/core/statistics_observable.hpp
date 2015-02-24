@@ -28,21 +28,18 @@
 
 #define CONST_UNITITIALIZED 1e-23
 
-struct s_observable;
-
-struct s_observable {
+class observable {
+public:
   char* obs_name;
   void* container;
   int n;
-  int (*update)    ( struct s_observable* obs );
-  int (*calculate) ( struct s_observable* obs );
+  int (*update)    ( struct observable* obs );
+  int (*calculate) ( struct observable* obs );
   double* last_value;
   double last_update;
   int autoupdate;
   double autoupdate_dt;
 };
-
-typedef struct s_observable observable;
 
 extern observable** observables;
 extern int n_observables; 
