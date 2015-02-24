@@ -23,8 +23,7 @@
 /** \file statistics.hpp
     This file contains the code for statistics on the data.
 */
-#include <vector>
-#include <string>
+
 #include "particle_data.hpp"
 #include "interaction_data.hpp"
 #include "utils.hpp"

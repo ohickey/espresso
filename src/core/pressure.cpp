@@ -1263,6 +1263,18 @@ double analyze_pressure_single(std::string pressure_to_calc, int bond_or_type, i
 		}
 		return *obsstat_bonded(&total_pressure, bond_or_type);
 	}
+	else if (pressure_to_calc=="nonbonded" || pressure_to_calc=="nb" ) {
+		if(bond_or_type < 0 || bond_or_type >= n_particle_types){
+			fprintf(stderr, "Warning: particle type does not exist\n");
+			return 0;
+		}
+		double current_pressure_term = 0;
+		for (int i = 0; i<n_particle_types; i++){
+			current_pressure_term += *obsstat_nonbonded_intra(&total_pressure_non_bonded, bond_or_type, i);
+			current_pressure_term += *obsstat_nonbonded_inter(&total_pressure_non_bonded, bond_or_type, i);
+		}
+		return current_pressure_term;
+	}
 	else if (pressure_to_calc=="nonbonded_intra" || pressure_to_calc=="nb_intra" ) {
 		if(bond_or_type < 0 || bond_or_type >= n_particle_types){
 			fprintf(stderr, "Warning: particle type does not exist\n");

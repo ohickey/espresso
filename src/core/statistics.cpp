@@ -23,8 +23,6 @@
     Implementation of statistics.hpp
 */
 #include <cstring>
-#include <string>
-#include <vector>
 #include <istream>
 
 #include "utils.hpp"

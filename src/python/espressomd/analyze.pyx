@@ -129,26 +129,26 @@ class Analysis(object):
   #
   # Pressure analysis
   #
-  def pressure(self, ptype = 'all', id1 = 'default', id2 = 'default', v_comp=False):
+  def pressure(self, pressure_type = 'all', id1 = 'default', id2 = 'default', v_comp=False):
     cdef vector[string] pressure_labels
     cdef vector[double] pressures
   
     checkTypeOrExcept(v_comp, 1, bool, "v_comp must be a boolean")
   
-    if ptype=='all':
+    if pressure_type=='all':
       c_analyze.analyze_pressure_all(&pressure_labels, &pressures, v_comp)
       return pressure_labels, pressures
     elif id1 == 'default' and id2 == 'default':
-      pressure = c_analyze.analyze_pressure(ptype, v_comp)
+      pressure = c_analyze.analyze_pressure(pressure_type, v_comp)
       return pressure
     elif id1 != 'default' and id2 == 'default':
       checkTypeOrExcept(id1, 1, int, "id1 must be an int")
-      pressure = c_analyze.analyze_pressure_single(ptype, id1, v_comp)
+      pressure = c_analyze.analyze_pressure_single(pressure_type, id1, v_comp)
       return pressure
     else:
       checkTypeOrExcept(id1, 1, int, "id1 must be an int")
       checkTypeOrExcept(id2, 1, int, "id2 must be an int")
-      pressure = c_analyze.analyze_pressure_pair(ptype, id1, id2, v_comp)
+      pressure = c_analyze.analyze_pressure_pair(pressure_type, id1, id2, v_comp)
       return pressure
    
   def stress_tensor(self, stress_type = 'all', id1 = 'default', id2 = 'default', v_comp=False):

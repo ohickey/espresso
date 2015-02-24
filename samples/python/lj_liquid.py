@@ -68,6 +68,7 @@ min_dist     = 0.9
 int_steps   = 1000
 int_n_times = 5
 
+part_type = 2
 
 #############################################################
 #  Setup System                                             #
@@ -77,16 +78,14 @@ int_n_times = 5
 #############################################################
 
 system.box_l = [box_l,box_l,box_l]
-print(dir(system))
-print(system.__dict__)
-print("try to do something with nonbondedinter")
-system.nonBondedInter[0,0].lennardJones.setParams(
+
+system.nonBondedInter[part_type,part_type].lennardJones.setParams(
     epsilon=lj_eps, sigma=lj_sig,
     cutoff=lj_cut, shift="auto")
 system.nonBondedInter.setForceCap(lj_cap)
 
 print("LJ-parameters:")
-print(system.nonBondedInter[0,0].lennardJones.getParams())
+print(system.nonBondedInter[part_type,part_type].lennardJones.getParams())
 
 # Particle setup
 #############################################################
@@ -96,6 +95,7 @@ n_part = int(volume*density)
 
 for i in range(n_part):
   system.part[i].pos=numpy.random.random(3)*system.box_l
+  system.part[i].type=part_type
 
 system.analyzer.distto(0)
 
@@ -127,7 +127,7 @@ Stop if minimal distance is larger than {}
 # set LJ cap
 lj_cap = 20
 system.nonBondedInter.setForceCap(lj_cap)
-print(system.nonBondedInter[0,0].lennardJones)
+print(system.nonBondedInter[part_type,part_type].lennardJones)
 
 # Warmup Integration Loop
 i = 0
@@ -177,7 +177,7 @@ print("\nStart integration: run %d times %d steps" % (int_n_times, int_steps))
 # remove force capping
 lj_cap = 0 
 system.nonBondedInter.setForceCap(lj_cap)
-print(system.nonBondedInter[0,0].lennardJones)
+print(system.nonBondedInter[part_type,part_type].lennardJones)
 
 # print initial energies
 #energies = es._espressoHandle.Tcl_Eval('analyze energy')
@@ -207,6 +207,9 @@ for i in range(0,int_n_times):
 #	polyBlockWrite "$name$ident.[format %04d $j]" {time box_l} {id pos type}
 #	incr j
 #    }
+
+print(system.analyzer.pressure())
+print(system.analyzer.pressure(pressure_type='nonbonded_intra',id1=part_type))
 
 # write end configuration
 end_file = open("pylj_liquid.end", "w")
