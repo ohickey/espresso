@@ -22,7 +22,7 @@ std::vector<int> get_observable_ids(int id);
 				runtimeError(msg); \
 			} \
 			this->update=0; \
-			this->container=ids; \
+			this->container=(void *)ids; \
 			this->n=obs_dimension*ids->n; \
 			this->last_value=(double*)malloc(this->n*sizeof(double)); \
 			this->calculate=&observable_calc_##observable_to_register; \

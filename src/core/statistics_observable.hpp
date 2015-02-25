@@ -35,10 +35,10 @@ public:
   }
   std::vector<int> return_observable_ids() {
 	  std::vector<int> result;
-	  result.reserve(this->n);
-	  int* ids = (int*) this->container;
-	  for (int i = 0;i<this->n;i++) {
-		  result.push_back(ids[i]);
+	  IntList* ids = (IntList*) this->container;
+	  result.reserve(ids->n);
+	  for (int i = 0;i<ids->n;i++) {
+		  result.push_back(ids->e[i]);
 	  }
 		return result;
   }

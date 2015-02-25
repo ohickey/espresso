@@ -62,11 +62,6 @@ int create_id_list_from_types_and_ids(IntList* output_ids, IntList *input_types,
 			}
 			output_ids->e[i] = input_ids->e[i];
 		}
-
-		for (int i=0;i<output_ids->n;i++)
-		{
-			printf ("input id of %d is %d output %d\n", i, input_ids->e[i], output_ids->e[i]);
-		}
 		return ES_OK;
 	}
 
@@ -82,14 +77,6 @@ int create_id_list_from_types_and_ids(IntList* output_ids, IntList *input_types,
 				output_ids->e[n_ids] = i;
 				n_ids++;
 			}
-		}
-		printf ("FUCKKKKKKK %d\n", output_ids->n);
-		printf ("%d\n", output_ids->max);
-		printf ("intput ids n %d input types n %d\n", input_ids->n, input_types->n);
-		if (output_ids->n) printf ("%d\n", output_ids->e[0]);
-		for (int i=0;i<output_ids->n;i++)
-		{
-			printf ("output id of %d is output %d\n", i, output_ids->e[i]);
 		}
 		return ES_OK;
 	}
@@ -107,16 +94,28 @@ int create_python_observable(std::string observable_name, IntList *input_types, 
 		if ( observables+id == 0 ) break;
 	if (id==n_observables)
 		observables=(observable**) realloc(observables, (n_observables+1)*sizeof(observable*));
-	observable_particle_velocities* new_obs;
-	if (observable_name=="particle_velocities")
+	if (observable_name=="particle_velocities") {
+		observable_particle_velocities* new_obs;
 		new_obs = new observable_particle_velocities (input_types, input_ids, all_particles);
-	observables[id] = new_obs;
-	n_observables++;
-	return id;
+		n_observables++;
+		observables[id] = new_obs;
+		return id;
+	}
+	if (observable_name=="particle_angular_momentum") {
+		observable_particle_angular_momentum* new_obs;
+		new_obs = new observable_particle_angular_momentum (input_types, input_ids, all_particles);
+		n_observables++;
+		observables[id] = new_obs;
+		return id;
+	}
+
+	fprintf(stderr,"Observable type not recognized\n");
+	errexit();
+	return ES_ERROR;
 }
 
 std::vector<double> get_observable_values(int id){
-	//observables[id]->update(observables[id]);
+	observable_calculate(observables[id]);
 	return observables[id]->return_observable_values();
 }
 std::vector<int> get_observable_ids(int id){

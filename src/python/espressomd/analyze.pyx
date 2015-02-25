@@ -33,7 +33,7 @@ class Analysis(object):
       raise Exception("Must pass a system instance to initiate an analyzer instance of Analysis!")
     self._system = system
 
-  def Python_obs_part_vels (self, inputTypesPy=(0,1,2), inputIdsPy=(0,1,2,3), all_particles=0, observable_name=None):
+  def Python_obs (self, inputTypesPy=(0,1,2), inputIdsPy=(0,1,2,3), all_particles=0, observable_name=None):
     cdef IntList* inputTypes
     cdef IntList* inputIds
     cdef IntList* output_ids=NULL
