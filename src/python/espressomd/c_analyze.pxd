@@ -24,9 +24,9 @@ from libcpp.string cimport string #import std::string as string
 from libcpp.vector cimport vector #import std::vector as vector
 
 cdef extern from "interface_statistics_observable.hpp":
-  cdef int create_id_list_from_types_and_ids(IntList* output_ids, IntList *input_types, IntList *input_ids, int all_particles)
-  cdef cppclass observable_particle_velocities:
-     observable_particle_velocities (IntList *input_types, IntList *input_ids, int all_particles) except +
+  cdef int create_python_observable(string observable_name, IntList *input_types, IntList *input_ids, int all_particles)
+  cdef vector[double] get_observable_values(int id)
+  cdef vector[int] get_observable_ids(int id)
 cdef extern from "statistics.hpp":
   ctypedef struct Observable_stat:
     int init_status

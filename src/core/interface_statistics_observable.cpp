@@ -21,17 +21,25 @@
 #include "utils.hpp"
 #include "interface_statistics_observable.hpp"
 #include "particle_data.hpp"
+#include "statistics_observable.hpp"
 
 
 int create_id_list_from_types_and_ids(IntList* output_ids, IntList *input_types, IntList *input_ids, int all_particles) {
 	int flag;
 	int n_ids = 0;
+
 	//Observables rely on the partCfg being sortable. If this is not true, an ambiguous error pops up later
 	if (!sortPartCfg()) {
 		std::ostringstream msg;
 		msg <<"Error parsing particle specifications.\nProbably your particle ids are not contiguous.\n";
 		runtimeError(msg);
 		return ES_ERROR;
+	}
+
+	if (!output_ids) {
+		std::ostringstream msg;
+		msg <<"Must provide valid pointer as first argument to create_id_list_from_types_and_ids.\n";
+		runtimeError(msg);
 	}
 
 	if (all_particles) {
@@ -42,28 +50,75 @@ int create_id_list_from_types_and_ids(IntList* output_ids, IntList *input_types,
 		return ES_OK;
 	}
 
-	realloc_intlist(output_ids, output_ids->n=input_ids->n);
+	if (input_ids) {
+		realloc_intlist(output_ids, output_ids->n=input_ids->n);
 
-	for (int i=0; i<input_ids->n; i++) {
-		if (input_ids->e[i] >= n_part) {
-			std::ostringstream msg;
-			msg <<"Error parsing ID list. Given particle ID exceeds the number of existing particles\n";
-			runtimeError(msg);
-			return ES_ERROR;
+		for (int i=0; i<input_ids->n; i++) {
+			if (input_ids->e[i] >= n_part) {
+				std::ostringstream msg;
+				msg <<"Error parsing ID list. Given particle ID exceeds the number of existing particles\n";
+				runtimeError(msg);
+				return ES_ERROR;
+			}
+			output_ids->e[i] = input_ids->e[i];
 		}
-		output_ids->e[i] = input_ids->e[i];
+
+		for (int i=0;i<output_ids->n;i++)
+		{
+			printf ("input id of %d is %d output %d\n", i, input_ids->e[i], output_ids->e[i]);
+		}
+		return ES_OK;
 	}
 
-	for (int i = 0; i<n_part; i++ ) {
-		flag=0;
-		for (int j = 0; j<input_types->n ; j++ ) {
-			if(partCfg[i].p.type == input_types->e[j])  flag=1;
+	if (input_types) {
+		n_ids = 0;
+		for (int i = 0; i<n_part; i++ ) {
+			flag=0;
+			for (int j = 0; j<input_types->n ; j++ ) {
+				if(partCfg[i].p.type == input_types->e[j]) flag=1;
+			}
+			if(flag==1){
+				realloc_intlist(output_ids, output_ids->n=n_ids+1);
+				output_ids->e[n_ids] = i;
+				n_ids++;
+			}
 		}
-		if(flag==1){
-			realloc_intlist(output_ids, output_ids->n=n_ids+1);
-			output_ids->e[n_ids] = i;
-			n_ids++;
+		printf ("FUCKKKKKKK %d\n", output_ids->n);
+		printf ("%d\n", output_ids->max);
+		printf ("intput ids n %d input types n %d\n", input_ids->n, input_types->n);
+		if (output_ids->n) printf ("%d\n", output_ids->e[0]);
+		for (int i=0;i<output_ids->n;i++)
+		{
+			printf ("output id of %d is output %d\n", i, output_ids->e[i]);
 		}
+		return ES_OK;
 	}
-	return ES_OK;
+	std::ostringstream msg;
+	msg <<"Error parsing ID list. Must pass all particles, particle ids, or particle types.\n";
+	runtimeError(msg);
+	return ES_ERROR;
+}
+
+int create_python_observable(std::string observable_name, IntList *input_types, IntList *input_ids, int all_particles){
+	int id;
+
+	// find the next free observable id
+	for (id=0;id<n_observables;id++)
+		if ( observables+id == 0 ) break;
+	if (id==n_observables)
+		observables=(observable**) realloc(observables, (n_observables+1)*sizeof(observable*));
+	observable_particle_velocities* new_obs;
+	if (observable_name=="particle_velocities")
+		new_obs = new observable_particle_velocities (input_types, input_ids, all_particles);
+	observables[id] = new_obs;
+	n_observables++;
+	return id;
+}
+
+std::vector<double> get_observable_values(int id){
+	//observables[id]->update(observables[id]);
+	return observables[id]->return_observable_values();
+}
+std::vector<int> get_observable_ids(int id){
+	return observables[id]->return_observable_ids();
 }

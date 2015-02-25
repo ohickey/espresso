@@ -32,8 +32,9 @@ cdef IntList* create_IntList_from_python_object(obj):
   alloc_intlist(il, len(obj))
   for i in range(len(obj)):
     il.e[i] = obj[i]
-    print il.e[i]
-
+    #print il.e[i]
+  il.n = len(obj)
+  il.max = len(obj)
   return il
 
 cdef np.ndarray create_nparray_from_IntList(IntList* il):

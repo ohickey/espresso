@@ -24,17 +24,29 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
-
+#include <vector>
 
 #define CONST_UNITITIALIZED 1e-23
 
 class observable {
 public:
+  std::vector<double> return_observable_values() {
+		return (std::vector<double> (&this->last_value[0], &this->last_value[this->n]));
+  }
+  std::vector<int> return_observable_ids() {
+	  std::vector<int> result;
+	  result.reserve(this->n);
+	  int* ids = (int*) this->container;
+	  for (int i = 0;i<this->n;i++) {
+		  result.push_back(ids[i]);
+	  }
+		return result;
+  }
   char* obs_name;
   void* container;
   int n;
-  int (*update)    ( struct observable* obs );
-  int (*calculate) ( struct observable* obs );
+  int (*update)    ( observable* obs );
+  int (*calculate) ( observable* obs );
   double* last_value;
   double last_update;
   int autoupdate;

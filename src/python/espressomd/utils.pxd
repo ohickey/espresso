@@ -30,6 +30,7 @@ cdef extern from "utils.hpp":
   ctypedef struct IntList:
     int *e
     int n
+    int max
   cdef void init_intlist(IntList *il)
   cdef void alloc_intlist(IntList *il, int size)
   cdef void realloc_intlist(IntList *il, int size)
@@ -37,6 +38,7 @@ cdef extern from "utils.hpp":
   ctypedef struct DoubleList:
     int *e
     int n
+    int max
   cdef void init_intlist(IntList *il)
   cdef void alloc_intlist(IntList *il, int size)
   cdef void realloc_intlist(IntList *il, int size)

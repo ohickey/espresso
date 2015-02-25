@@ -33,14 +33,20 @@ class Analysis(object):
       raise Exception("Must pass a system instance to initiate an analyzer instance of Analysis!")
     self._system = system
 
-  def Python_obs_part_vels (self, inputTypesPy=(0,1,2), inputIdsPy=(0,1,2,3), all_particles=0):
+  def Python_obs_part_vels (self, inputTypesPy=(0,1,2), inputIdsPy=(0,1,2,3), all_particles=0, observable_name=None):
     cdef IntList* inputTypes
     cdef IntList* inputIds
     cdef IntList* output_ids=NULL
-    #inputTypes = create_IntList_from_python_object(inputTypesPy)
-    #inputIds = create_IntList_from_python_object(inputIdsPy)
-    result = c_analyze.create_id_list_from_types_and_ids(output_ids, inputTypes, inputIds, 0)
-    return 1
+    inputTypes = create_IntList_from_python_object(inputTypesPy)
+    inputIds = create_IntList_from_python_object(inputIdsPy)
+    obs_id = c_analyze.create_python_observable(observable_name, inputTypes, inputIds, all_particles)
+    return obs_id
+
+  def Python_obs_get_values (self, id=None):
+    return c_analyze.get_observable_values(id)
+
+  def Python_obs_get_ids (self, id=None):
+    return c_analyze.get_observable_ids(id)
 
   #
   # Minimal distance between particles
@@ -73,9 +79,9 @@ class Analysis(object):
   
     result = c_analyze.mindist(set1, set2)
   
-  # # The following lines are probably not necessary.
-  #   realloc_intlist(set1, 0)
-  #   realloc_intlist(set2, 0)
+    # The following lines are necessary to get rid of set.e, which is also dynamically allocated
+    realloc_intlist(set1, 0)
+    realloc_intlist(set2, 0)
     free (set1)
     free (set2)
   
@@ -86,10 +92,8 @@ class Analysis(object):
   # plane
   def nbhood(self, pos=None, r_catch=None, plane = '3d'):
     cdef int planedims[3]
-    cdef IntList* il
+    cdef IntList* il=NULL
     cdef double c_pos[3]
-  
-    il = <IntList*> malloc (sizeof(IntList))
   
     checkTypeOrExcept(pos, 3, float, "_pos=(float,float,float) must be passed to nbhood")
     checkTypeOrExcept(r_catch, 1, float, "r_catch=float needs to be passed to nbhood")
@@ -110,9 +114,11 @@ class Analysis(object):
     for i in range(3):
       c_pos[i] = pos[i]
   
-    c_analyze.nbhood(c_pos, r_catch, il, planedims);
+    il = <IntList*> malloc(sizeof(IntList))
+    c_analyze.nbhood(c_pos, r_catch, il, planedims)
   
     result = create_nparray_from_IntList(il)
+    realloc_intlist(il, 0)
     free(il)
     return result
   #
