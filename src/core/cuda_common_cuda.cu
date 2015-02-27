@@ -96,7 +96,7 @@ __device__ unsigned int getThreadIndex() {
 
 
 
-/** kernel for the initalisation of the particle force array
+/** kernel for the initialisation of the particle force array
  * @param *particle_forces_device	    Pointer to local particle force (Output)
  * @param *particle_seeds_device			Pointer to the particle rn seed storearray (Output)
 */
@@ -114,7 +114,7 @@ __global__ void init_particle_force(CUDA_particle_force *particle_forces_device,
 
 }
 
-/** kernel for the initalisation of the fluid composition 
+/** kernel for the initialisation of the fluid composition 
  * @param *fluid_composition_device Pointer to local fluid composition (Output)
 */
 __global__ void init_fluid_composition(CUDA_fluid_composition *fluid_composition_device){
@@ -133,7 +133,7 @@ __global__ void init_fluid_composition(CUDA_fluid_composition *fluid_composition
 
 
 
-/** kernel for the initalisation of the partikel force array
+/** kernel for the initialisation of the particle force array
  * @param *particle_forces_device	pointer to local particle force (Input)
 */
 __global__ void reset_particle_force(CUDA_particle_force *particle_forces_device){

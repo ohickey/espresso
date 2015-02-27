@@ -31,7 +31,12 @@ std::vector<int> get_observable_ids(int id);
 		} \
 };
 
-PARTICLE_OBSERVABLE(particle_velocities,3);
-PARTICLE_OBSERVABLE(particle_body_velocities, 3);
 PARTICLE_OBSERVABLE(particle_angular_momentum, 3);
 PARTICLE_OBSERVABLE(particle_body_angular_momentum, 3);
+#ifdef ELECTROSTATICS
+PARTICLE_OBSERVABLE(particle_currents,3);
+#endif
+PARTICLE_OBSERVABLE(particle_forces,3);
+PARTICLE_OBSERVABLE(particle_positions,3);
+PARTICLE_OBSERVABLE(particle_velocities,3);
+PARTICLE_OBSERVABLE(particle_body_velocities, 3);

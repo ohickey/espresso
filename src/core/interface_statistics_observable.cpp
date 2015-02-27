@@ -86,6 +86,20 @@ int create_id_list_from_types_and_ids(IntList* output_ids, IntList *input_types,
 	return ES_ERROR;
 }
 
+#define CREATE_PARTICLE_OBSERVABLE(observable_to_register) \
+		if (observable_name==#observable_to_register) { \
+			observable_##observable_to_register *new_obs; \
+			new_obs = new observable_##observable_to_register (input_types, input_ids, all_particles); \
+			n_observables++; \
+			observables[id] = new_obs; \
+			return id; \
+		}
+#define PARTICLE_OBSERVABLE_MISSING(observable_to_register) \
+		if (observable_name==#observable_to_register) { \
+			fprintf(stderr,"Observable ", #observable_to_register," not compiled in!\n"); \
+			errexit(); \
+		}
+
 int create_python_observable(std::string observable_name, IntList *input_types, IntList *input_ids, int all_particles){
 	int id;
 
@@ -94,20 +108,19 @@ int create_python_observable(std::string observable_name, IntList *input_types, 
 		if ( observables+id == 0 ) break;
 	if (id==n_observables)
 		observables=(observable**) realloc(observables, (n_observables+1)*sizeof(observable*));
-	if (observable_name=="particle_velocities") {
-		observable_particle_velocities* new_obs;
-		new_obs = new observable_particle_velocities (input_types, input_ids, all_particles);
-		n_observables++;
-		observables[id] = new_obs;
-		return id;
-	}
-	if (observable_name=="particle_angular_momentum") {
-		observable_particle_angular_momentum* new_obs;
-		new_obs = new observable_particle_angular_momentum (input_types, input_ids, all_particles);
-		n_observables++;
-		observables[id] = new_obs;
-		return id;
-	}
+
+	CREATE_PARTICLE_OBSERVABLE(particle_angular_momentum);
+	CREATE_PARTICLE_OBSERVABLE(particle_body_angular_momentum);
+#ifdef ELECTROSTATICS
+	CREATE_PARTICLE_OBSERVABLE(particle_currents);
+#else
+	PARTICLE_OBSERVABLE_MISSING(particle_currents);
+#endif
+	CREATE_PARTICLE_OBSERVABLE(particle_forces);
+	CREATE_PARTICLE_OBSERVABLE(particle_positions);
+	CREATE_PARTICLE_OBSERVABLE(particle_velocities);
+	CREATE_PARTICLE_OBSERVABLE(particle_body_velocities);
+
 
 	fprintf(stderr,"Observable type not recognized\n");
 	errexit();

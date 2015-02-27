@@ -33,19 +33,21 @@ class Analysis(object):
       raise Exception("Must pass a system instance to initiate an analyzer instance of Analysis!")
     self._system = system
 
-  def Python_obs (self, inputTypesPy=(0,1,2), inputIdsPy=(0,1,2,3), all_particles=0, observable_name=None):
-    cdef IntList* inputTypes
-    cdef IntList* inputIds
+  def Python_obs (self, inputTypes=None, inputIds=None, all_particles=0, observable_name=None):
+    cdef IntList* inputTypesC
+    cdef IntList* inputIdsC
     cdef IntList* output_ids=NULL
-    inputTypes = create_IntList_from_python_object(inputTypesPy)
-    inputIds = create_IntList_from_python_object(inputIdsPy)
-    obs_id = c_analyze.create_python_observable(observable_name, inputTypes, inputIds, all_particles)
+    inputTypesC = create_IntList_from_python_object(inputTypes)
+    inputIdsC = create_IntList_from_python_object(inputIds)
+    obs_id = c_analyze.create_python_observable(observable_name, inputTypesC, inputIdsC, all_particles)
     return obs_id
 
   def Python_obs_get_values (self, id=None):
+    checkTypeOrExcept(id, 1, int, "id=int must be passed to Python_obs_get_values")
     return c_analyze.get_observable_values(id)
 
   def Python_obs_get_ids (self, id=None):
+    checkTypeOrExcept(id, 1, int, "id=int must be passed to Python_obs_get_ids")
     return c_analyze.get_observable_ids(id)
 
   #
