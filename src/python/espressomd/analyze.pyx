@@ -155,7 +155,7 @@ class Analysis(object):
     checkTypeOrExcept(v_comp, 1, bool, "v_comp must be a boolean")
   
     if pressure_type=='all':
-      c_analyze.analyze_pressure_all(&pressure_labels, &pressures, v_comp)
+      c_analyze.analyze_pressure_all(pressure_labels, pressures, v_comp)
       return pressure_labels, pressures
     elif id1 == 'default' and id2 == 'default':
       pressure = c_analyze.analyze_pressure(pressure_type, v_comp)
@@ -173,40 +173,27 @@ class Analysis(object):
   def stress_tensor(self, stress_type = 'all', id1 = 'default', id2 = 'default', v_comp=False):
     cdef vector[string] stress_labels
     cdef vector[double] stresses
-    cdef double *stress
   
     checkTypeOrExcept(v_comp, 1, bool, "v_comp must be a boolean")
     
     if stress_type=='all':
-      c_analyze.analyze_stress_tensor_all(&stress_labels, &stresses, v_comp)
+      c_analyze.analyze_stress_tensor_all(stress_labels, stresses, v_comp)
       return stress_labels, stresses
     elif id1 == 'default' and id2 == 'default':
-      stress = <double*> malloc (9*sizeof(double))
-      if (c_analyze.analyze_stress_tensor(stress_type, v_comp, stress)):
-        free(stress)
+      if (c_analyze.analyze_stress_tensor(stress_type, v_comp, stresses)):
         raise Exception("Error while calculating stress tensor")
-      npArrayStress = create_nparray_from_DoubleArray(stress, 9)
-      free(stress)
-      return npArrayStress
+      return stresses
     elif id1 != 'default' and id2 == 'default':
       checkTypeOrExcept(id1, 1, int, "id1 must be an int")
-      stress = <double*> malloc (9*sizeof(double))
-      if (c_analyze.analyze_stress_single(stress_type, id1, v_comp, stress)):
-        free(stress)
+      if (c_analyze.analyze_stress_single(stress_type, id1, v_comp, stresses)):
         raise Exception("Error while calculating stress tensor")
-      npArrayStress = create_nparray_from_DoubleArray(stress, 9)
-      free(stress)
-      return npArrayStress
+      return stresses
     else:
       checkTypeOrExcept(id1, 1, int, "id1 must be an int")
       checkTypeOrExcept(id2, 1, int, "id2 must be an int")
-      stress = <double*> malloc (9*sizeof(double))
-      if (c_analyze.analyze_stress_pair(stress_type, id1, id2, v_comp, stress)):
-        free(stress)
+      if (c_analyze.analyze_stress_pair(stress_type, id1, id2, v_comp, stresses)):
         raise Exception("Error while calculating stress tensor")
-      npArrayStress = create_nparray_from_DoubleArray(stress, 9)
-      free(stress)
-      return npArrayStress
+      return stresses
        
   def local_stress_tensor(self, periodicity=(1, 1, 1), range_start=(0.0, 0.0, 0.0), stress_range=(1.0, 1.0, 1.0), bins=(1, 1, 1)):
     cdef DoubleList* local_stress_tensor=NULL

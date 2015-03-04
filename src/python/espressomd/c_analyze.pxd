@@ -47,14 +47,14 @@ cdef extern from "statistics.hpp":
   cdef double *obsstat_nonbonded(Observable_stat *stat, int i, int j)
 
 cdef extern from "pressure.hpp":
-  cdef void analyze_pressure_all(vector[string] *pressure_labels, vector[double] *pressures, int v_comp)
+  cdef void analyze_pressure_all(vector[string] & pressure_labels, vector[double] & pressures, int v_comp)
   cdef double analyze_pressure(string pressure_to_calc, int v_comp)
   cdef double analyze_pressure_pair(string pressure_to_calc, int type1, int type2, int v_comp)
   cdef double analyze_pressure_single(string pressure_to_calc, int bond_or_type, int v_comp)
-  cdef void analyze_stress_tensor_all(vector[string] *stressTensorLabel, vector[double] *stressTensorValues, int v_comp)
-  cdef int analyze_stress_tensor(string pressure_to_calc, int v_comp, double *stress)
-  cdef int analyze_stress_pair(string pressure_to_calc, int type1, int type2, int v_comp, double *stress)
-  cdef int analyze_stress_single(string pressure_to_calc, int bond_or_type, int v_comp, double *stress)
+  cdef void analyze_stress_tensor_all(vector[string] & stressTensorLabel, vector[double] & stressTensorValues, int v_comp)
+  cdef int analyze_stress_tensor(string pressure_to_calc, int v_comp, vector[double] & stress)
+  cdef int analyze_stress_pair(string pressure_to_calc, int type1, int type2, int v_comp, vector[double] & stress)
+  cdef int analyze_stress_single(string pressure_to_calc, int bond_or_type, int v_comp, vector[double] & stress)
   cdef int analyze_local_stress_tensor(int* periodic, double* range_start, double* range, int* bins, DoubleList* local_stress_tensor)
 
 cdef extern from "energy.hpp":

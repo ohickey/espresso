@@ -96,7 +96,7 @@ int create_id_list_from_types_and_ids(IntList* output_ids, IntList *input_types,
 		}
 #define PARTICLE_OBSERVABLE_MISSING(observable_to_register) \
 		if (observable_name==#observable_to_register) { \
-			fprintf(stderr,"Observable ", #observable_to_register," not compiled in!\n"); \
+			fprintf(stderr,"Observable %s not compiled in!\n", #observable_to_register); \
 			errexit(); \
 		}
 

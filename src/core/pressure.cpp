@@ -1070,7 +1070,7 @@ int observable_compute_stress_tensor(int v_comp, double *A, unsigned int n_A)
   return 0;
 }
 //return two vectors with the various pressure in the system and an appropriate label for each
-void analyze_pressure_all(std::vector<std::string> *pressure_labels, std::vector<double> *pressures, int v_comp)
+void analyze_pressure_all(std::vector<std::string> & pressure_labels, std::vector<double> & pressures, int v_comp)
 {
 	int i, j;
 	double current_pressure_term;
@@ -1082,25 +1082,25 @@ void analyze_pressure_all(std::vector<std::string> *pressure_labels, std::vector
 	for (i = 1; i < total_pressure.data.n; i++) {
 		current_pressure_term += total_pressure.data.e[i];
 	}
-	pressures->push_back(current_pressure_term);
-	pressure_labels->push_back("pressure");
+	pressures.push_back(current_pressure_term);
+	pressure_labels.push_back("pressure");
 
-	pressures->push_back(total_pressure.data.e[0]);
-	pressure_labels->push_back("ideal");
+	pressures.push_back(total_pressure.data.e[0]);
+	pressure_labels.push_back("ideal");
 	for(i=0;i<n_bonded_ia;i++) {
 		if (bonded_ia_params[i].type != BONDED_IA_NONE) {
-			pressures->push_back( *obsstat_bonded(&total_pressure, i));
-			pressure_labels->push_back( get_name_of_bonded_ia(bonded_ia_params[i].type));
+			pressures.push_back( *obsstat_bonded(&total_pressure, i));
+			pressure_labels.push_back( get_name_of_bonded_ia(bonded_ia_params[i].type));
 		}
 	}
 
 	for (i = 0; i < n_particle_types; i++) {
 		for (j = i; j < n_particle_types; j++) {
 			if (checkIfParticlesInteract(i, j)) {
-				pressures->push_back(*obsstat_nonbonded(&total_pressure, i, j));
+				pressures.push_back(*obsstat_nonbonded(&total_pressure, i, j));
 				std::ostringstream cur_label;
 				cur_label << "nonbonded " << i << " " << j;
-				pressure_labels->push_back( cur_label.str() );
+				pressure_labels.push_back( cur_label.str() );
 			}
 		}
 	}
@@ -1112,8 +1112,8 @@ void analyze_pressure_all(std::vector<std::string> *pressure_labels, std::vector
 				current_pressure_term += *obsstat_nonbonded_intra(&total_pressure_non_bonded, i, j);
 		}
 	}
-	pressures->push_back(current_pressure_term);
-	pressure_labels->push_back("total_nb_intra");
+	pressures.push_back(current_pressure_term);
+	pressure_labels.push_back("total_nb_intra");
 
 	current_pressure_term = 0;
 	for (i = 0; i < n_particle_types; i++) {
@@ -1121,17 +1121,17 @@ void analyze_pressure_all(std::vector<std::string> *pressure_labels, std::vector
 				current_pressure_term += *obsstat_nonbonded_inter(&total_pressure_non_bonded, i, j);
 		}
 	}
-	pressures->push_back(current_pressure_term);
-	pressure_labels->push_back("total_nb_inter");
+	pressures.push_back(current_pressure_term);
+	pressure_labels.push_back("total_nb_inter");
 
 
 	for (i = 0; i < n_particle_types; i++) {
 		for (j = i; j < n_particle_types; j++) {
 			if (checkIfParticlesInteract(i, j)) {
-				pressures->push_back(*obsstat_nonbonded_intra(&total_pressure_non_bonded, i, j));
+				pressures.push_back(*obsstat_nonbonded_intra(&total_pressure_non_bonded, i, j));
         std::ostringstream cur_label;
 				cur_label << "nb_intra " << i << " " << j;
-				pressure_labels->push_back( cur_label.str() );
+				pressure_labels.push_back( cur_label.str() );
 			}
 		}
 	}
@@ -1139,10 +1139,10 @@ void analyze_pressure_all(std::vector<std::string> *pressure_labels, std::vector
 	for (i = 0; i < n_particle_types; i++) {
 		for (j = i; j < n_particle_types; j++) {
 			if (checkIfParticlesInteract(i, j)) {
-				pressures->push_back(*obsstat_nonbonded_inter(&total_pressure_non_bonded, i, j));
+				pressures.push_back(*obsstat_nonbonded_inter(&total_pressure_non_bonded, i, j));
         std::ostringstream cur_label;
 				cur_label << "nb_inter " << i << " " << j;
-				pressure_labels->push_back( cur_label.str() );
+				pressure_labels.push_back( cur_label.str() );
 			}
 		}
 	}
@@ -1167,31 +1167,31 @@ void analyze_pressure_all(std::vector<std::string> *pressure_labels, std::vector
 			current_pressure_term += total_pressure.coulomb[i];
 		for (i = 0; i < total_pressure.n_dipolar; i++)
 			current_pressure_term += total_pressure.dipolar[i];
-		pressures->push_back(current_pressure_term);
-		pressure_labels->push_back("coulomb-total");
+		pressures.push_back(current_pressure_term);
+		pressure_labels.push_back("coulomb-total");
 #if  defined(ELECTROSTATICS) && defined (DIPOLES)
-		pressure_labels->push_back("coulomb");
-		pressure_labels->push_back("magdipoles");
+		pressure_labels.push_back("coulomb");
+		pressure_labels.push_back("magdipoles");
 #else
 #if defined(ELECTROSTATICS)
-		pressure_labels->push_back("coulomb");
+		pressure_labels.push_back("coulomb");
 #endif
 #if defined(DIPOLES)
-		pressure_labels->push_back("magdipoles");
+		pressure_labels.push_back("magdipoles");
 #endif
 #endif
 
 		/* if it is split up, then print the split up parts */
 		if (total_pressure.n_coulomb > 1) {
 			for (i = 0; i < total_pressure.n_coulomb; i++) {
-				pressures->push_back(total_pressure.coulomb[i]);
+				pressures.push_back(total_pressure.coulomb[i]);
 			}
 		}
 	}
 #endif
 #ifdef VIRTUAL_SITES_RELATIVE
-	pressures->push_back(total_pressure.vs_relative[0]);
-	pressure_labels->push_back("va_relative");
+	pressures.push_back(total_pressure.vs_relative[0]);
+	pressure_labels.push_back("va_relative");
 #endif
 }
 
@@ -1364,7 +1364,7 @@ void update_stress_tensor (int v_comp) {
 	}
 }
 
-void analyze_stress_tensor_all(std::vector<std::string> *stressTensorLabel, std::vector<double> *stressTensorValues, int v_comp)
+void analyze_stress_tensor_all(std::vector<std::string> & stressTensorLabel, std::vector<double> & stressTensorValues, int v_comp)
 {
 	double value;
 	int i, j, k;
@@ -1378,16 +1378,16 @@ void analyze_stress_tensor_all(std::vector<std::string> *stressTensorLabel, std:
 		for (i = 1; i < total_p_tensor.data.n/9; i++) value += total_p_tensor.data.e[9*i + j];
 		std::ostringstream cur_label;
 		cur_label << "stress_tensor_total " << j;
-		stressTensorLabel->push_back(cur_label.str());
-		stressTensorValues->push_back(value);
+		stressTensorLabel.push_back(cur_label.str());
+		stressTensorValues.push_back(value);
 	}
 
 	for(j=0; j<9; j++) {
-		stressTensorLabel->push_back("ideal_stress_tensor");
+		stressTensorLabel.push_back("ideal_stress_tensor");
 		std::ostringstream cur_label;
 		cur_label << "ideal_stress_tensor " << j;
-		stressTensorLabel->push_back(cur_label.str());
-		stressTensorValues->push_back(total_p_tensor.data.e[j]);
+		stressTensorLabel.push_back(cur_label.str());
+		stressTensorValues.push_back(total_p_tensor.data.e[j]);
 	}
 
 	for(i=0;i<n_bonded_ia;i++) {
@@ -1395,8 +1395,8 @@ void analyze_stress_tensor_all(std::vector<std::string> *stressTensorLabel, std:
 			for(j=0; j<9; j++) {
 				std::ostringstream cur_label;
 				cur_label << get_name_of_bonded_ia(bonded_ia_params[i].type) << i << " " << j;
-				stressTensorLabel->push_back(cur_label.str());
-				stressTensorValues->push_back(obsstat_bonded(&total_p_tensor, i)[j]);
+				stressTensorLabel.push_back(cur_label.str());
+				stressTensorValues.push_back(obsstat_bonded(&total_p_tensor, i)[j]);
 			}
 		}
 	}
@@ -1405,10 +1405,10 @@ void analyze_stress_tensor_all(std::vector<std::string> *stressTensorLabel, std:
 		for (j = i; j < n_particle_types; j++) {
 			if (checkIfParticlesInteract(i, j)) {
 				for(k=0; k<9; k++) {
-					stressTensorValues->push_back(obsstat_nonbonded(&total_p_tensor, i, j)[k]);
+					stressTensorValues.push_back(obsstat_nonbonded(&total_p_tensor, i, j)[k]);
 					std::ostringstream cur_label;
 					cur_label << "nonbonded " << i << " " << j << " " << k;
-					stressTensorLabel->push_back( cur_label.str() );
+					stressTensorLabel.push_back( cur_label.str() );
 				}
 			}
 		}
@@ -1423,8 +1423,8 @@ void analyze_stress_tensor_all(std::vector<std::string> *stressTensorLabel, std:
 			}
 		std::ostringstream cur_label;
 		cur_label << "total_nb_intra " << i << " " << j;
-		stressTensorLabel->push_back( cur_label.str() );
-		stressTensorValues->push_back(value);
+		stressTensorLabel.push_back( cur_label.str() );
+		stressTensorValues.push_back(value);
 	}
 
 	for(k=0; k<9; k++) {
@@ -1435,8 +1435,8 @@ void analyze_stress_tensor_all(std::vector<std::string> *stressTensorLabel, std:
 			}
 		std::ostringstream cur_label;
 		cur_label << "total_nb_inter " << i << " " << j;
-		stressTensorLabel->push_back( cur_label.str() );
-		stressTensorValues->push_back(value);
+		stressTensorLabel.push_back( cur_label.str() );
+		stressTensorValues.push_back(value);
 	}
 
 	for (i = 0; i < n_particle_types; i++)
@@ -1445,8 +1445,8 @@ void analyze_stress_tensor_all(std::vector<std::string> *stressTensorLabel, std:
 				for(k=0; k<9; k++) {
 					std::ostringstream cur_label;
 					cur_label << "nb_intra_tensor " << i << " " << j << " " << k;
-					stressTensorLabel->push_back( cur_label.str() );
-					stressTensorValues->push_back(obsstat_nonbonded_intra(&total_p_tensor_non_bonded, i, j)[k]);
+					stressTensorLabel.push_back( cur_label.str() );
+					stressTensorValues.push_back(obsstat_nonbonded_intra(&total_p_tensor_non_bonded, i, j)[k]);
 				}
 			}
 		}
@@ -1457,8 +1457,8 @@ void analyze_stress_tensor_all(std::vector<std::string> *stressTensorLabel, std:
 				for(k=0; k<9; k++) {
 					std::ostringstream cur_label;
 					cur_label << "nb_inter_tensor " << i << " " << j << " " << k;
-					stressTensorLabel->push_back( cur_label.str() );
-					stressTensorValues->push_back(obsstat_nonbonded_inter(&total_p_tensor_non_bonded, i, j)[k]);
+					stressTensorLabel.push_back( cur_label.str() );
+					stressTensorValues.push_back(obsstat_nonbonded_inter(&total_p_tensor_non_bonded, i, j)[k]);
 				}
 			}
 		}
@@ -1468,8 +1468,8 @@ void analyze_stress_tensor_all(std::vector<std::string> *stressTensorLabel, std:
 		for(j=0; j<9; j++) {
 			std::ostringstream cur_label;
 			cur_label << "coulomb " << j;
-			stressTensorLabel->push_back( cur_label.str() );
-			stressTensorValues->push_back(total_p_tensor.coulomb[j]);
+			stressTensorLabel.push_back( cur_label.str() );
+			stressTensorValues.push_back(total_p_tensor.coulomb[j]);
 		}
 	}
 #endif
@@ -1484,8 +1484,8 @@ void analyze_stress_tensor_all(std::vector<std::string> *stressTensorLabel, std:
 	for (j=0;j<9;j++) {
 		std::ostringstream cur_label;
 		cur_label << "vs_relative " << j;
-		stressTensorLabel->push_back( cur_label.str() );
-		stressTensorValues->push_back(total_p_tensor.vs_relative[j]);
+		stressTensorLabel.push_back( cur_label.str() );
+		stressTensorValues.push_back(total_p_tensor.vs_relative[j]);
 	}
 #endif
 
@@ -1493,13 +1493,14 @@ void analyze_stress_tensor_all(std::vector<std::string> *stressTensorLabel, std:
 }
 
 /************************************************************/
-int analyze_stress_tensor(std::string pressure_to_calc, int v_comp, double *tvalue)
+int analyze_stress_tensor(std::string pressure_to_calc, int v_comp, std::vector<double> & tvalue)
 {
-  /* 'analyze stress_tensor [{ bond <type_num> | nonbonded <type1> <type2> | coulomb | ideal | total }]' */
-  int i, j, k;
-  //tvalue = (double*)calloc(9, sizeof(double));
-	for(j=0; j<9; j++) tvalue[j] = 0.0;
-
+	/* 'analyze stress_tensor [{ bond <type_num> | nonbonded <type1> <type2> | coulomb | ideal | total }]' */
+	int i, j, k;
+	tvalue.reserve(9);
+	for (int i = 0; i < 9; i++) {
+		tvalue.push_back(0);
+	}
 
 	if (total_pressure.init_status != 1+v_comp )
 		update_stress_tensor(v_comp);
@@ -1539,7 +1540,7 @@ int analyze_stress_tensor(std::string pressure_to_calc, int v_comp, double *tval
 		return ES_OK;
 #else
 		fprintf(stderr, "ELECTROSTATICS not compiled (see config.hpp)\n");
-		return ES_ERROR
+		return ES_ERROR;
 #endif
 	}
 	else if(pressure_to_calc=="dipolar") {
@@ -1563,10 +1564,12 @@ int analyze_stress_tensor(std::string pressure_to_calc, int v_comp, double *tval
 	return ES_ERROR;
 }
 
-int analyze_stress_pair(std::string pressure_to_calc, int type1, int type2, int v_comp, double *tvalue)
+int analyze_stress_pair(std::string pressure_to_calc, int type1, int type2, int v_comp, std::vector<double> & tvalue)
 {
-	//tvalue = (double*)calloc(9, sizeof(double));
-	for(int j=0; j<9; j++) tvalue[j] = 0.0;
+	tvalue.reserve(9);
+	for (int i = 0; i < 9; i++) {
+		tvalue.push_back(0);
+	}
 
 	if (total_pressure.init_status != 1+v_comp )
 		update_pressure(v_comp);
@@ -1600,12 +1603,14 @@ int analyze_stress_pair(std::string pressure_to_calc, int type1, int type2, int 
 	}
 }
 
-int analyze_stress_single(std::string pressure_to_calc, int bond_or_type, int v_comp, double *tvalue)
+int analyze_stress_single(std::string pressure_to_calc, int bond_or_type, int v_comp, std::vector<double> & tvalue)
 {
-	//tvalue = (double*)calloc(9, sizeof(double));
-	int j, k;
+	int k;
 
-	for(j=0; j<9; j++) tvalue[j] = 0.0;
+	tvalue.reserve(9);
+	for (int i = 0; i < 9; i++) {
+		tvalue.push_back(0);
+	}
 
 	if (total_pressure.init_status != 1+v_comp )
 		update_pressure(v_comp);
