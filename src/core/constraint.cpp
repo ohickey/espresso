@@ -2248,11 +2248,11 @@ void reflect_particle(Particle *p1, double *distance_vec, int reflecting) {
       double folded_pos[3];
       int img[3];
 
-      memcpy(folded_pos, p1->r.p, 3*sizeof(double));
-      memcpy(img, p1->l.i, 3*sizeof(int));
+      memmove(folded_pos, p1->r.p, 3*sizeof(double));
+      memmove(img, p1->l.i, 3*sizeof(int));
       fold_position(folded_pos, img);
 
-      memcpy(vec, distance_vec, 3*sizeof(double));
+      memmove(vec, distance_vec, 3*sizeof(double));
 /* For Debugging your can show the folded coordinates of the particle before
  * and after the reflecting by uncommenting these lines  */
  //     printf("position before reflection %f %f %f\n",folded_pos[0], folded_pos[1], folded_pos[2]); 
@@ -2265,8 +2265,8 @@ void reflect_particle(Particle *p1, double *distance_vec, int reflecting) {
        p1->r.p[2] = p1->r.p[2]-2*vec[2];
 
    /*  This can show the folded position after reflection      
-       memcpy(folded_pos, p1->r.p, 3*sizeof(double));
-       memcpy(img, p1->l.i, 3*sizeof(int));
+       memmove(folded_pos, p1->r.p, 3*sizeof(double));
+       memmove(img, p1->l.i, 3*sizeof(int));
        fold_position(folded_pos, img);
        printf("position after reflection %f %f %f\n",folded_pos[0], folded_pos[1], folded_pos[2]); */
 
@@ -2294,6 +2294,7 @@ void reflect_particle(Particle *p1, double *distance_vec, int reflecting) {
 
 void Shape::add_constraint_force_default (Constraint* current_constraint, Particle *p1, double* folded_pos, double* force, double* torque1, double* torque2, IA_parameters* ia_params)
 {
+<<<<<<< HEAD
 	double dist, vec[3];
 	if(checkIfInteraction(ia_params)) {
 		if (!(current_constraint->_shape->calculate_dist(p1, folded_pos, &current_constraint->part_rep, &dist, vec))) {
@@ -2301,6 +2302,40 @@ void Shape::add_constraint_force_default (Constraint* current_constraint, Partic
 				calc_non_bonded_pair_force(p1, &current_constraint->part_rep,
 						ia_params,vec,dist,dist*dist, force,
 						torque1, torque2);
+=======
+  if (n_constraints==0)
+   return;
+  int n, j;
+  double dist, vec[3], force[3], torque1[3], torque2[3];
+
+  IA_parameters *ia_params;
+  double folded_pos[3];
+  int img[3];
+
+  /* fold the coordinate[2] of the particle */
+  memmove(folded_pos, p1->r.p, 3*sizeof(double));
+  memmove(img, p1->l.i, 3*sizeof(int));
+  fold_position(folded_pos, img);
+
+  for(n=0;n<n_constraints;n++) {
+    ia_params=get_ia_param(p1->p.type, (&constraints[n].part_rep)->p.type);
+    dist=0.;
+    for (j = 0; j < 3; j++) {
+      force[j] = 0;
+#ifdef ROTATION
+      torque1[j] = torque2[j] = 0;
+#endif
+    }
+
+    switch(constraints[n].type) {
+    case CONSTRAINT_WAL: 
+      if(checkIfInteraction(ia_params)) {
+	calculate_wall_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.wal, &dist, vec); 
+	if ( dist > 0 ) {
+	  calc_non_bonded_pair_force(p1, &constraints[n].part_rep,
+				     ia_params,vec,dist,dist*dist, force,
+				     torque1, torque2);
+>>>>>>> upstream/master
 #ifdef TUNABLE_SLIP
 				if (current_constraint->_shape->tunable_slip == 1 ) {
 					add_tunable_slip_pair_force(p1, &current_constraint->part_rep,ia_params,vec,dist,force);
@@ -2356,12 +2391,34 @@ void add_constraints_forces(Particle *p1)
 #ifdef ROTATION
 			torque1[j] = torque2[j] = 0;
 #endif
+<<<<<<< HEAD
 		}
 		Constraint::constraints[n]._shape->add_constraint_force_default(&Constraint::constraints[n],p1,folded_pos,force,torque1,torque2, ia_params);
 
 		for (j = 0; j < 3; j++) {
 			p1->f.f[j] += force[j];
 			Constraint::constraints[n].part_rep.f.f[j] -= force[j];
+=======
+	}
+    else {
+        ostringstream msg;
+        msg <<"plane constraint " << n << " violated by particle " << p1->p.identity;
+        runtimeError(msg);
+	}
+     }
+      break;
+    case CONSTRAINT_NONE:
+      force[0] = force[1] = force[2] = 0.0;
+      break;
+  default:
+      fprintf(stderr, "ERROR: encountered unknown constraint during force computation\n");
+      errexit();
+      break;
+    }
+    for (j = 0; j < 3; j++) {
+      p1->f.f[j] += force[j];
+      constraints[n].part_rep.f.f[j] -= force[j];
+>>>>>>> upstream/master
 #ifdef ROTATION
 			p1->f.torque[j] += torque1[j];
 			Constraint::constraints[n].part_rep.f.torque[j] += torque2[j];
@@ -2371,6 +2428,7 @@ void add_constraints_forces(Particle *p1)
 }
 void Shape::add_constraint_energy_default (Constraint* current_constraint, Particle *p1, double* folded_pos, double* nonbonded_en, double* coulomb_en, double* magnetic_en, IA_parameters* ia_params)
 {
+<<<<<<< HEAD
 	double dist, vec[3];
 	magnetic_en = 0;
 	coulomb_en = 0;
@@ -2395,6 +2453,98 @@ void Shape::add_constraint_energy_default (Constraint* current_constraint, Parti
 		else {
 			fprintf (stderr,"Warning:encountered a constraint for which the energy cannot be computed\n");
 		}
+=======
+  int n, type;
+  double dist, vec[3];
+  double nonbonded_en, coulomb_en, magnetic_en;
+  IA_parameters *ia_params;
+  double folded_pos[3];
+  int img[3];
+
+  /* fold the coordinate[2] of the particle */
+  memmove(folded_pos, p1->r.p, 3*sizeof(double));
+  memmove(img, p1->l.i, 3*sizeof(int));
+  fold_position(folded_pos, img);
+  for(n=0;n<n_constraints;n++) { 
+    ia_params = get_ia_param(p1->p.type, (&constraints[n].part_rep)->p.type);
+    nonbonded_en = 0.;
+    coulomb_en   = 0.;
+    magnetic_en = 0.;
+
+    dist=0.;
+    switch(constraints[n].type) {
+    case CONSTRAINT_WAL: 
+      if(checkIfInteraction(ia_params)) {
+	calculate_wall_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.wal, &dist, vec); 
+	if ( dist > 0 ) {
+	  nonbonded_en = calc_non_bonded_pair_energy(p1, &constraints[n].part_rep,
+						     ia_params, vec, dist, dist*dist);
+	}
+	else if ( dist <= 0 && constraints[n].c.wal.penetrable == 1 ) {
+	  if ( dist < 0 ) {
+	  nonbonded_en = calc_non_bonded_pair_energy(p1, &constraints[n].part_rep,
+						     ia_params, vec, -1.0*dist, dist*dist);
+	  }
+	}
+    else {
+        ostringstream msg;
+        msg <<"wall constraint "<< n << " violated by particle "<< p1->p.identity;
+        runtimeError(msg);
+	}
+      }
+      break;
+	
+    case CONSTRAINT_SPH: 
+      if(checkIfInteraction(ia_params)) {
+	calculate_sphere_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.sph, &dist, vec); 
+	if ( dist > 0 ) {
+	  nonbonded_en = calc_non_bonded_pair_energy(p1, &constraints[n].part_rep,
+						     ia_params, vec, dist, dist*dist);
+	}
+	else if ( dist <= 0 && constraints[n].c.sph.penetrable == 1 ) {
+	  if ( dist < 0 ) {
+	  nonbonded_en = calc_non_bonded_pair_energy(p1, &constraints[n].part_rep,
+						     ia_params, vec, -1.0*dist, dist*dist);
+	  }
+	}
+    else {
+        ostringstream msg;
+        msg << "sphere constraint "<< n << " violated by particle " << p1->p.identity;
+        runtimeError(msg);
+	}
+      }
+      break;
+	
+    case CONSTRAINT_CYL: 
+      if(checkIfInteraction(ia_params)) {
+	calculate_cylinder_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.cyl, &dist , vec); 
+	if ( dist > 0 ) {
+	  nonbonded_en = calc_non_bonded_pair_energy(p1, &constraints[n].part_rep,
+						     ia_params, vec, dist, dist*dist);
+
+	}
+	else if ( dist <= 0 && constraints[n].c.cyl.penetrable == 1 ) {
+	  if ( dist < 0 ) {
+	  nonbonded_en = calc_non_bonded_pair_energy(p1, &constraints[n].part_rep,
+						     ia_params, vec, -1.0*dist, dist*dist);
+	  }
+	}
+    else {
+        ostringstream msg;
+        msg <<"cylinder constraint "<< n << " violated by particle " << p1->p.identity;
+        runtimeError(msg);
+	}
+      }
+      break;
+	
+    case CONSTRAINT_RHOMBOID: 
+      if(checkIfInteraction(ia_params)) {
+	calculate_rhomboid_dist(p1, folded_pos, &constraints[n].part_rep, &constraints[n].c.rhomboid, &dist , vec); 
+	if ( dist > 0 ) {
+	  nonbonded_en = calc_non_bonded_pair_energy(p1, &constraints[n].part_rep,
+						     ia_params, vec, dist, dist*dist);
+
+>>>>>>> upstream/master
 	}
 }
 double add_constraints_energy(Particle *p1)

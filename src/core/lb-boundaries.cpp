@@ -78,7 +78,7 @@ void lb_init_boundaries() {
     int boundary_number = -1; // the number the boundary will actually belong to.
   
 #ifdef EK_BOUNDARIES
-    float *host_wallcharge_species_density = NULL;
+    ekfloat *host_wallcharge_species_density = NULL;
     float node_wallcharge = 0.0f;
     int wallcharge_species = -1, charged_boundaries = 0;
     int node_charged = 0;
@@ -88,9 +88,15 @@ void lb_init_boundaries() {
 
     if (ek_initialized)
     {
+<<<<<<< HEAD
       host_wallcharge_species_density = (float*) malloc(ek_parameters.number_of_nodes * sizeof(float));
       for(n = 0; n < int(LB_Boundary::n_lb_boundaries); n++) {
         if(LB_Boundary::lb_boundaries[n].charge_density != 0.0) {
+=======
+      host_wallcharge_species_density = (ekfloat*) malloc(ek_parameters.number_of_nodes * sizeof(ekfloat));
+      for(n = 0; n < int(n_lb_boundaries); n++) {
+        if(lb_boundaries[n].charge_density != 0.0) {
+>>>>>>> upstream/master
           charged_boundaries = 1;
           break;
         }

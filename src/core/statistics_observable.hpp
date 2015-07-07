@@ -28,6 +28,7 @@
 
 #define CONST_UNITITIALIZED 1e-23
 
+<<<<<<< HEAD
 class observable {
 public:
   std::vector<double> return_observable_values() {
@@ -42,6 +43,14 @@ public:
 	  }
 		return result;
   }
+=======
+enum ObservableType { OBSERVABLE, AVERAGE, VARIANCE };
+
+struct s_observable;
+
+struct s_observable {
+  ObservableType type;
+>>>>>>> upstream/master
   char* obs_name;
   void* container;
   int n;
@@ -64,6 +73,10 @@ void autoupdate_observables();
 void observable_init(observable* self);
 int observable_calculate(observable* self);
 int observable_update(observable* self);
+
+/* IO functions for observables */
+int observable_write(char *filename, observable *self, bool binary);
+int observable_read(char *filename, observable *self, bool binary);
 
 /* Here we have the particular observables listed */
 int observable_calc_particle_velocities(observable* self_);
@@ -114,7 +127,8 @@ typedef struct {
   int *q_vals; // values of q vectors
   double *q_density; // number of q vectors per bin
   // entries for fast version
-  int num_k_vecs;
+  //int num_k_vecs;
+  int k_density;
 } observable_sf_params;
 
 /** See if particles from idList1 interact with any of the particles in idList2 

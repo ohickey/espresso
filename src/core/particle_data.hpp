@@ -141,6 +141,19 @@ typedef struct {
   int catalyzer_count;
 #endif
 
+#ifdef MULTI_TIMESTEP
+  /** does the particle need a small timestep? 
+   * 1= yes
+   * 0 = no (default) */
+  int smaller_timestep;
+#endif
+
+#ifdef CONFIGTEMP
+  /** is the particle included in the configurational temperature?
+  * 1 = yes
+  * 0 = no (Default) */
+  int configtemp;
+#endif
 #ifdef EXTERNAL_FORCES
   /** flag whether to fix a particle in space.
       Values:
@@ -535,6 +548,23 @@ void pointer_to_rotational_inertia(Particle* p, double*& rinertia);
 int set_particle_rotation(int part, int rot);
 #endif
 
+#ifdef MULTI_TIMESTEP
+/** Call only on the master node: set particle smaller time step flag.
+    @param part the particle.
+    @param small_timestep its new smaller time step.
+    @return TCL_OK if particle existed
+*/
+int set_particle_smaller_timestep(int part,int small_timestep);
+#endif
+
+#ifdef CONFIGTEMP
+/** Call only on the master node: include particle in configurational T.
+    @param part the particle.
+    @param configtemp flag for configurational temperature inclusion.
+    @return TCL_OK if particle existed
+*/
+int set_particle_configtemp(int part, int configtemp);
+#endif
 
 /** Call only on the master node: set particle charge.
     @param part the particle.
@@ -928,4 +958,34 @@ void pointer_to_mass(Particle* p, double*&  res);
 void pointer_to_dip(Particle* P, double*& res);
 
 void pointer_to_dipm(Particle* P, double*& res);
+
+#ifdef EXTERNAL_FORCES
+void pointer_to_ext_force(Particle *p, int*& res1, double*& res2);
+#ifdef ROTATION
+void pointer_to_ext_torque(Particle *p, int*& res1, double*& res2);
+#endif
+void pointer_to_fix(Particle *p, int*& res);
+#endif
+
+#ifdef LANGEVIN_PER_PARTICLE
+void pointer_to_gamma(Particle *p, double*& res);
+void pointer_to_temperature(Particle *p, double*& res);
+#endif
+
+#ifdef ROTATION_PER_PARTICLE
+void pointer_to_rotation(Particle *p, int*& res);
+#endif
+
+#ifdef EXCLUSIONS
+void pointer_to_exclusions(Particle *p, int*& res1, int*& res2);
+#endif
+
+#ifdef ENGINE
+void pointer_to_swimming(Particle *p, ParticleParametersSwimming*& swim);
+#endif
+
+#ifdef ROTATIONAL_INERTIA
+void pointer_to_rotational_inertia(Particle *p, double*& res);
+#endif
+
 #endif

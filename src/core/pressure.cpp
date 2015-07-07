@@ -118,7 +118,7 @@ void pressure_calc(double *result, double *result_t, double *result_nb, double *
 #ifdef ROTATION_PER_PARTICLE
     fprintf(stderr, "Switching rotation per particle (#define ROTATION_PER_PARTICLE) and pressure calculation are incompatible.\n");
 #endif
-  
+
   virials.data.e[0] /= (3.0*volume*time_step*time_step);
 
   calc_long_range_virials();
@@ -1069,6 +1069,7 @@ int observable_compute_stress_tensor(int v_comp, double *A, unsigned int n_A)
   }
   return 0;
 }
+<<<<<<< HEAD
 //return two vectors with the various pressure in the system and an appropriate label for each
 void analyze_pressure_all(std::vector<std::string> & pressure_labels, std::vector<double> & pressures, int v_comp)
 {
@@ -1338,6 +1339,8 @@ double analyze_pressure_pair(std::string pressure_to_calc, int type1, int type2,
 	}
 }
 
+=======
+>>>>>>> upstream/master
 void update_stress_tensor (int v_comp) {
 	int i;
 	double p_vel[3];
@@ -1364,6 +1367,7 @@ void update_stress_tensor (int v_comp) {
 	}
 }
 
+<<<<<<< HEAD
 void analyze_stress_tensor_all(std::vector<std::string> & stressTensorLabel, std::vector<double> & stressTensorValues, int v_comp)
 {
 	double value;
@@ -1661,6 +1665,8 @@ int analyze_stress_single(std::string pressure_to_calc, int bond_or_type, int v_
 	}
 }
 
+=======
+>>>>>>> upstream/master
 int analyze_local_stress_tensor(int* periodic, double* range_start, double* range, int* bins, DoubleList* local_stress_tensor)
 {
 	int i,j;
